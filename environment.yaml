@@ -1,0 +1,37 @@
+# Conda environment for gpxray development
+#
+# Install:    conda env create -f environment.yml
+# Update:     conda env update -f environment.yml
+# Activate:   conda activate gpxray-dev
+# Deactivate: conda deactivate
+
+name: gpxray-dev
+
+channels:
+  - conda-forge
+
+variables:
+  PYTHONNOUSERSITE: "1"
+
+dependencies:
+  - python=3.9
+  - pip
+  - astropy
+  - numpy
+  - matplotlib
+  - tox
+  - pytest
+  - pytest-astropy
+  - pytest-cov
+  - pytest-xdist
+  - ipython
+  - black
+  - pre-commit
+  - codespell
+  - flake8
+  - isort
+  - sphinx
+  - sphinx-astropy
+  - sphinx-click
+  - pydata-sphinx-theme
+  - twine
