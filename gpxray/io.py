@@ -35,3 +35,94 @@ def read_event_list_chandra(filename):
     table.meta["MJDREFF"] = mjd - mjd_int
     table.meta["TIMESYS"] = "tt"  # TODO: not sure tt is correct here...
     return EventList(table=table)
+
+
+class ChandraObservation:
+    """File location class"""
+
+    def __init__(self, obs_id):
+        self.obs_id = obs_id
+
+    @property
+    def path(self):
+        """Data location path"""
+        return self._path
+
+    @property
+    def source_name(self):
+        """Source name (`str`)"""
+        return self.index_table.meta["OBJECT"].strip()
+
+    @property
+    def path_base(self):
+        """Base path"""
+        return self.path_data / f"{self.obs_id}"
+
+    @property
+    def path_data(self):
+        """Base path"""
+        return self.path.parent / "data"
+
+    @property
+    def path_repro(self):
+        """Reprocessed data path"""
+        return self.path_base / "repro"
+
+    @property
+    def path_psf(self):
+        """PSF data path"""
+        path = self.path / f"{self.obs_id}" / "psf"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def path_spectrum(self):
+        """Spectrum path"""
+        path = self.path_base / "spectrum"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def filename_counts_image(self):
+        """Jolideco input PSF"""
+        path = self.path / f"{self.obs_id}"
+        return path / "counts.png"
+
+    @property
+    def filename_psf_marx(self):
+        """ "Reprocessed data path"""
+        return self.path_psf / "psf"
+
+    @property
+    def filename_spectrum(self):
+        """Filename spectrum"""
+        return self.path_spectrum / f"source-flux-chart-{self.source_name}.dat"
+
+    @property
+    def filename_spectrum_pha(self):
+        """Filename spectrum"""
+        return self.path_spectrum / f"{self.source_name}.pi"
+
+    @property
+    def filename_repro_evt2(self):
+        """Reprocessed data path"""
+        return self.path_repro / f"acisf{self.obs_id:05d}_repro_evt2.fits"
+
+    @property
+    def filename_repro_evt2_reprojected(self):
+        """Reprocessed data path"""
+        return self.path_repro / f"acisf{self.obs_id:05d}_repro_evt2_reprojected.fits"
+
+    @property
+    def index_table(self):
+        """Index table (`astropy.table.Table`)"""
+        index_table = Table.read(self.path_base / "oif.fits")
+        index_table.add_index("MEMBER_CONTENT")
+        return index_table
+
+    def get_filename(self, member_content):
+        """Get file name"""
+        filename = self.index_table.loc[f"{member_content:32s}"]["MEMBER_LOCATION"]
+        filename = filename.strip()
+        filename = filename.replace(".fits", ".fits.gz")
+        return self.path_base / filename
