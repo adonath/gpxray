@@ -17,6 +17,7 @@ dependencies:
   - python=3.9
   - pip
   - astropy
+  - click
   - numpy
   - matplotlib
   - tox
