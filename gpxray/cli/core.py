@@ -42,8 +42,10 @@ click.disable_unicode_literals_warning = True
 def cli(log_level, ignore_warnings):  # noqa: D301
     """gpxray command line interface (CLI).
 
+    \b
     Examples
     --------
+
     \b
     $ gpxray --help
     $ gpxray --version
