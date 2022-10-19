@@ -9,7 +9,18 @@ from gammapy.data import EventList
 
 
 def wcs_from_header_chandra(header, x_col=11):
-    """Create WCS from event file header"""
+    """Create WCS from event file header
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        FITS header
+
+    Returns
+    -------
+    wcs : `~astropy.wcs.WCS`
+        WCS object
+    """
     y_col = x_col + 1
     wcs = WCS(naxis=2)
     wcs.wcs.crpix = [header[f"TCRPX{x_col}"], header[f"TCRPX{y_col}"]]
