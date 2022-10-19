@@ -4,13 +4,14 @@ from typing import List
 import yaml
 from astropy import units as u
 from astropy.coordinates import Angle
-from gammapy.analysis.config import (
-    AngleType,
-    EnergyType,
-    GammapyBaseConfig,
-    SkyCoordConfig,
-)
+from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
+
+
+class SkyCoordConfig(GammapyBaseConfig):
+    frame: FrameEnum = FrameEnum.icrs
+    lon: AngleType = Angle("0 deg")
+    lat: AngleType = Angle("0 deg")
 
 
 class ROIConfig(GammapyBaseConfig):
@@ -65,5 +66,5 @@ class ChandraConfig(GammapyBaseConfig):
         # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
         config = json.loads(self.json())
         return yaml.dump(
-            config, sort_keys=False, indent=4, width=80, default_flow_style=None
+            config, sort_keys=False, indent=4, width=80, default_flow_style=False
         )
