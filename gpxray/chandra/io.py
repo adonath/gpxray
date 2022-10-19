@@ -63,9 +63,14 @@ class ChandraFileIndex:
         return self._path
 
     @property
-    def path_obsid(self):
+    def path_data(self):
         """Data location path"""
-        return self.path / f"{self.obs_id}"
+        return self._path / "data"
+
+    @property
+    def path_obs_id(self):
+        """Data location path"""
+        return self.path_data / f"{self.obs_id}"
 
     @property
     def source_name(self):
@@ -80,37 +85,9 @@ class ChandraFileIndex:
     @property
     def path_psf(self):
         """PSF data path"""
-        path = self.path_obsid / "psf"
+        path = self.path_obs_id / "psf"
         path.mkdir(parents=True, exist_ok=True)
         return path
-
-    @property
-    def path_spectrum(self):
-        """Spectrum path"""
-        path = self.path_base / "spectrum"
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    @property
-    def filename_counts_image(self):
-        """Jolideco input PSF"""
-        path = self.path / f"{self.obs_id}"
-        return path / "counts.png"
-
-    @property
-    def filename_psf_marx(self):
-        """ "Reprocessed data path"""
-        return self.path_psf / "psf"
-
-    @property
-    def filename_spectrum(self):
-        """Filename spectrum"""
-        return self.path_spectrum / f"source-flux-chart-{self.source_name}.dat"
-
-    @property
-    def filename_spectrum_pha(self):
-        """Filename spectrum"""
-        return self.path_spectrum / f"{self.source_name}.pi"
 
     @property
     def filename_repro_evt2(self):
@@ -125,7 +102,7 @@ class ChandraFileIndex:
     @property
     def index_table(self):
         """Index table (`astropy.table.Table`)"""
-        index_table = Table.read(self.path_obsid / "oif.fits")
+        index_table = Table.read(self.path_obs_id / "oif.fits")
         index_table.add_index("MEMBER_CONTENT")
         return index_table
 

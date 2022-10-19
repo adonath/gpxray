@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import List
 
 import yaml
@@ -6,6 +7,8 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
+
+from .io import ChandraFileIndex
 
 
 class SkyCoordConfig(GammapyBaseConfig):
@@ -25,12 +28,16 @@ class EnergyRangeConfig(GammapyBaseConfig):
 
 
 class ChandraConfig(GammapyBaseConfig):
+    _path: Path = Path(".")
     name: str = "my-analysis"
     sub_name: str = "my-config"
     obs_ids: List[int] = [1, 2, 3]
     obs_id_ref: int = 1
     roi: ROIConfig = ROIConfig()
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
+
+    class Config:
+        underscore_attrs_are_private = True
 
     def __str__(self):
         """Display settings in pretty YAML format."""
@@ -44,6 +51,7 @@ class ChandraConfig(GammapyBaseConfig):
     def read(cls, path):
         """Reads from YAML file."""
         config = read_yaml(path)
+        config["path"] = path.parent
         return ChandraConfig(**config)
 
     @classmethod
@@ -55,8 +63,10 @@ class ChandraConfig(GammapyBaseConfig):
     def write(self, path, overwrite=False):
         """Write to YAML file."""
         path = make_path(path)
+
         if path.exists() and not overwrite:
             raise IOError(f"File exists already: {path}")
+
         path.write_text(self.to_yaml())
 
     def to_yaml(self):
@@ -68,3 +78,10 @@ class ChandraConfig(GammapyBaseConfig):
         return yaml.dump(
             config, sort_keys=False, indent=4, width=80, default_flow_style=False
         )
+
+    @property
+    def file_indices(self):
+        """File indices"""
+        return [
+            ChandraFileIndex(obs_id=obs_id, path=self.path) for obs_id in self.obs_ids
+        ]
