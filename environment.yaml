@@ -9,12 +9,19 @@ name: gpxray-dev
 
 channels:
   - conda-forge
+  - https://cxc.cfa.harvard.edu/conda/ciao
+  - anaconda
 
 variables:
   PYTHONNOUSERSITE: "1"
+  MARX_ROOT: $CONDA_PREFIX
 
 dependencies:
   - python=3.9
+  - ciao=4.14
+  - sherpa=4.14
+  - ciao-contrib
+  - caldb_main
   - pip
   - astropy
   - click
