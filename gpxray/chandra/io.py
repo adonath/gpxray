@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 from astropy import units as u
 from astropy.io import fits
@@ -37,11 +39,12 @@ def read_event_list_chandra(filename):
     return EventList(table=table)
 
 
-class ChandraObservation:
-    """File location class"""
+class ChandraFileIndex:
+    """File index class"""
 
-    def __init__(self, obs_id):
+    def __init__(self, obs_id, path="."):
         self.obs_id = obs_id
+        self._path = Path(path)
 
     @property
     def path(self):
@@ -49,29 +52,24 @@ class ChandraObservation:
         return self._path
 
     @property
+    def path_obsid(self):
+        """Data location path"""
+        return self.path / f"{self.obs_id}"
+
+    @property
     def source_name(self):
         """Source name (`str`)"""
         return self.index_table.meta["OBJECT"].strip()
 
     @property
-    def path_base(self):
-        """Base path"""
-        return self.path_data / f"{self.obs_id}"
-
-    @property
-    def path_data(self):
-        """Base path"""
-        return self.path.parent / "data"
-
-    @property
     def path_repro(self):
         """Reprocessed data path"""
-        return self.path_base / "repro"
+        return self.path_obsid / "repro"
 
     @property
     def path_psf(self):
         """PSF data path"""
-        path = self.path / f"{self.obs_id}" / "psf"
+        path = self.path_obsid / "psf"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -116,7 +114,7 @@ class ChandraObservation:
     @property
     def index_table(self):
         """Index table (`astropy.table.Table`)"""
-        index_table = Table.read(self.path_base / "oif.fits")
+        index_table = Table.read(self.path_obsid / "oif.fits")
         index_table.add_index("MEMBER_CONTENT")
         return index_table
 
