@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 from typing import List
 
@@ -9,6 +10,8 @@ from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBas
 from gammapy.utils.scripts import make_path, read_yaml
 
 from .io import ChandraFileIndex
+
+log = logging.getLogger(__name__)
 
 
 class SkyCoordConfig(GammapyBaseConfig):
@@ -28,16 +31,13 @@ class EnergyRangeConfig(GammapyBaseConfig):
 
 
 class ChandraConfig(GammapyBaseConfig):
-    _path: Path = Path(".")
+    path: Path = Path(".")
     name: str = "my-analysis"
     sub_name: str = "my-config"
     obs_ids: List[int] = [1, 2, 3]
     obs_id_ref: int = 1
     roi: ROIConfig = ROIConfig()
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
-
-    class Config:
-        underscore_attrs_are_private = True
 
     def __str__(self):
         """Display settings in pretty YAML format."""
@@ -50,8 +50,9 @@ class ChandraConfig(GammapyBaseConfig):
     @classmethod
     def read(cls, path):
         """Reads from YAML file."""
+        log.info(f"Reading {path}")
         config = read_yaml(path)
-        config["path"] = path.parent
+        config["path"] = Path(path).parentgit
         return ChandraConfig(**config)
 
     @classmethod

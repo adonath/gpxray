@@ -7,7 +7,6 @@ import click
 from gpxray.chandra.config import ChandraConfig
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 def execute_command(command, cwd="."):
@@ -42,15 +41,14 @@ def cli_chandra_init_config(filename, overwrite):
 @click.option(
     "--overwrite", default=False, is_flag=True, help="Overwrite existing file."
 )
-def download_data(filename, overwrite):
+def cli_chandra_download(filename, overwrite):
     """Download data"""
-
     config = ChandraConfig.read(filename)
 
     for index in config.file_indices:
         index.path_data.mkdir(exist_ok=True)
 
-        if not index.path_base.exists() or overwrite:
+        if not index.path_obs_id.exists() or overwrite:
             command = ["download_chandra_obsid", f"{index.obs_id}"]
             execute_command(command=command, cwd=f"{index.path_data}")
         else:
