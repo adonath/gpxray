@@ -54,3 +54,17 @@ def cli(log_level, ignore_warnings):  # noqa: D301
 
     if ignore_warnings:
         warnings.simplefilter("ignore")
+
+
+@cli.group("chandra")
+def cli_chandra():
+    """Chandra sub-commmands"""
+
+
+def add_subcommnads():
+    from .chandra import cli_chandra_init_config
+
+    cli_chandra.add_command(cli_chandra_init_config)
+
+
+add_subcommnads()
