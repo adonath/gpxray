@@ -28,7 +28,7 @@ def cli_chandra_init_config(filename, overwrite):
     """Writes default configuration file."""
     config = ChandraConfig()
     config.write(filename, overwrite=overwrite)
-    log.info(f"Configuration file produced: {filename}")
+    log.info(f"Writing: {filename}")
 
 
 @click.command(name="download")
