@@ -6,7 +6,8 @@ from pathlib import Path
 import click
 
 from gpxray import __version__
-from gpxray.chandra.config import ChandraConfig, ChandraFileIndex
+from gpxray.chandra.config import ChandraConfig
+from gpxray.chandra.io import ChandraFileIndex
 
 from .chandra import cli_chandra_download, cli_chandra_init_config
 
@@ -86,7 +87,7 @@ def cli(log_level, ignore_warnings):  # noqa: D301
 
 @cli.group("chandra")
 @click.option("--filename", help="Config file name", default="config.yaml")
-@click.option("--obs-id", help="Obs ID", default=0)
+@click.option("--obs-id", help="Obs ID", default=-1)
 @click.option(
     "--overwrite", default=False, is_flag=True, help="Overwrite existing files."
 )
