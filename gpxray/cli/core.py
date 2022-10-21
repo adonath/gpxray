@@ -1,12 +1,38 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import logging
 import warnings
+from pathlib import Path
 
 import click
 
 from gpxray import __version__
+from gpxray.chandra.config import ChandraConfig, ChandraFileIndex
 
 from .chandra import cli_chandra_download, cli_chandra_init_config
+
+
+class ContextObject(object):
+    """Context"""
+
+    def __init__(self, config, filename, obs_id=-1, overwrite=False):
+        self.config = config
+
+        if obs_id == -1:
+            obs_ids = config.obs_ids
+        else:
+            obs_ids = [obs_id]
+
+        self.obs_ids = obs_ids
+        self.overwrite = overwrite
+        self.filename = Path(filename)
+
+    @property
+    def file_indices(self):
+        """File indices"""
+        return [
+            ChandraFileIndex(obs_id=obs_id, path=self.filename.parent)
+            for obs_id in self.obs_ids
+        ]
 
 
 # We implement the --version following the example from here:
@@ -59,8 +85,24 @@ def cli(log_level, ignore_warnings):  # noqa: D301
 
 
 @cli.group("chandra")
-def cli_chandra():
+@click.option("--filename", help="Config file name", default="config.yaml")
+@click.option("--obs-id", help="Obs ID", default=0)
+@click.option(
+    "--overwrite", default=False, is_flag=True, help="Overwrite existing files."
+)
+@click.pass_context
+def cli_chandra(ctx, filename, obs_id, overwrite):
     """Chandra sub-commmands"""
+    filename = Path(filename)
+
+    if filename.exists():
+        config = ChandraConfig.read(path=filename)
+    else:
+        config = ChandraConfig()
+
+    ctx.obj = ContextObject(
+        config=config, obs_id=obs_id, overwrite=overwrite, filename=filename
+    )
 
 
 cli_chandra.add_command(cli_chandra_init_config)

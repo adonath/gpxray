@@ -1,6 +1,5 @@
 import json
 import logging
-from pathlib import Path
 from typing import List
 
 import yaml
@@ -10,8 +9,6 @@ from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic import create_model
-
-from .io import ChandraFileIndex
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +59,6 @@ class EnergyRangeConfig(GammapyBaseConfig):
 
 
 class ChandraConfig(GammapyBaseConfig):
-    path: Path = Path(".")
     name: str = "my-analysis"
     sub_name: str = "my-config"
     obs_ids: List[int] = [1, 2, 3]
@@ -84,7 +80,6 @@ class ChandraConfig(GammapyBaseConfig):
         """Reads from YAML file."""
         log.info(f"Reading {path}")
         config = read_yaml(path)
-        config["path"] = Path(path).parentgit
         return ChandraConfig(**config)
 
     @classmethod
@@ -111,10 +106,3 @@ class ChandraConfig(GammapyBaseConfig):
         return yaml.dump(
             config, sort_keys=False, indent=4, width=80, default_flow_style=False
         )
-
-    @property
-    def file_indices(self):
-        """File indices"""
-        return [
-            ChandraFileIndex(obs_id=obs_id, path=self.path) for obs_id in self.obs_ids
-        ]
