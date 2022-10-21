@@ -15,17 +15,19 @@ channels:
 variables:
   PYTHONNOUSERSITE: "1"
   MARX_ROOT: $CONDA_PREFIX
+  CONDA_SUBDIR: osx-64
 
 dependencies:
   - python=3.9
   - ciao=4.14
   - sherpa=4.14
   - ciao-contrib
-  - caldb_main
   - pip
+  - gammapy==v1.0rc1
   - astropy
   - click
   - numpy
+  - scipy
   - matplotlib
   - tox
   - pytest
@@ -33,6 +35,7 @@ dependencies:
   - pytest-cov
   - pytest-xdist
   - ipython
+  - jupyter
   - black
   - pre-commit
   - codespell
