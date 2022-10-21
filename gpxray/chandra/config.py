@@ -6,12 +6,43 @@ from typing import List
 import yaml
 from astropy import units as u
 from astropy.coordinates import Angle
+from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
+from pydantic import create_model
 
 from .io import ChandraFileIndex
 
 log = logging.getLogger(__name__)
+
+
+CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool}
+
+
+def create_ciao_config(toolname, model_name):
+    """Create config class"""
+    par_info = runtool.parinfo[toolname]
+
+    parameters = {}
+
+    for par in par_info["req"]:
+        parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], Ellipsis)
+
+    for par in par_info["opt"]:
+        parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
+
+    model = create_model(model_name, __base__=GammapyBaseConfig, **parameters)
+
+    return model
+
+
+DMCopyConfig = create_ciao_config("dmcopy", "DMCopyConfig")
+ChandraReproConfig = create_ciao_config("chandra_repro", "ChandraReproConfig")
+
+
+class CiaoToolsConfig(GammapyBaseConfig):
+    dmcopy: DMCopyConfig = DMCopyConfig(infile="", outfile="")
+    chandra_repro: ChandraReproConfig = ChandraReproConfig(indir="", outdir="")
 
 
 class SkyCoordConfig(GammapyBaseConfig):
@@ -38,6 +69,7 @@ class ChandraConfig(GammapyBaseConfig):
     obs_id_ref: int = 1
     roi: ROIConfig = ROIConfig()
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
+    ciao: CiaoToolsConfig = CiaoToolsConfig()
 
     def __str__(self):
         """Display settings in pretty YAML format."""
