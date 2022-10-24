@@ -39,11 +39,11 @@ def cli_chandra_download(obj):
 
 @click.command("reprocess", short_help="Reprocess chandra observation data")
 @click.pass_obj
-def reprocess_data(obj):
+def cli_chandra_reprocess(obj):
     """Reprocess data"""
     for index in obj.file_indices:
         if index.path_repro.exists() and not obj.overwrite:
             log.info(f"Skipping reprocessing, {index.path_repro} already exists.")
             continue
 
-        run_ciao_tool("chandra_repo", config=obj.config)
+        run_ciao_tool("chandra_repro", config=obj.config, file_index=index)

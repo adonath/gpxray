@@ -9,7 +9,11 @@ from gpxray import __version__
 from gpxray.chandra.config import ChandraConfig
 from gpxray.chandra.io import ChandraFileIndex
 
-from .chandra import cli_chandra_download, cli_chandra_init_config
+from .chandra import (
+    cli_chandra_download,
+    cli_chandra_init_config,
+    cli_chandra_reprocess,
+)
 
 
 class ContextObject(object):
@@ -108,3 +112,4 @@ def cli_chandra(ctx, filename, obs_id, overwrite):
 
 cli_chandra.add_command(cli_chandra_init_config)
 cli_chandra.add_command(cli_chandra_download)
+cli_chandra.add_command(cli_chandra_reprocess)

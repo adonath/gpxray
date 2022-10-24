@@ -80,7 +80,7 @@ class ChandraFileIndex:
     @property
     def path_repro(self):
         """Reprocessed data path"""
-        return self.path_obsid / "repro"
+        return self.path_obs_id / "repro"
 
     @property
     def path_psf(self):

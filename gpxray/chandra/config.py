@@ -2,6 +2,7 @@ import json
 import logging
 from typing import List
 
+import numpy as np
 import yaml
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -16,6 +17,15 @@ log = logging.getLogger(__name__)
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
 
+class BaseConfig(GammapyBaseConfig):
+    """Base config"""
+
+    @property
+    def required_names(self):
+        """Get required field names"""
+        return [field.name for field in self.__fields__.values() if field.required]
+
+
 def create_ciao_config(toolname, model_name):
     """Create config class"""
     par_info = runtool.parinfo[toolname]
@@ -28,7 +38,7 @@ def create_ciao_config(toolname, model_name):
     for par in par_info["opt"]:
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
 
-    model = create_model(model_name, __base__=GammapyBaseConfig, **parameters)
+    model = create_model(model_name, __base__=BaseConfig, **parameters)
 
     return model
 
@@ -39,40 +49,40 @@ ReprojectEventsConfig = create_ciao_config("reproject_events", "ReprojectEventsC
 SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 
 
-class CiaoToolsConfig(GammapyBaseConfig):
+class CiaoToolsConfig(BaseConfig):
     dmcopy: DMCopyConfig = DMCopyConfig(infile="{file_index.}", outfile="{file_index.}")
     chandra_repro: ChandraReproConfig = ChandraReproConfig(
-        indir="{file_index.}", outdir="{file_index.}"
+        indir="{file_index.path_obs_id}", outdir="{file_index.path_repro}"
     )
     reproject_events: ReprojectEventsConfig = ReprojectEventsConfig(
         infile="{file_index.}", outfile="{file_index.}", match="{file_index.}"
     )
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
-        infile="{file_index.}",
-        outroot="{file_index.}",
-        ra="{config.roi_config.center.icrs.ra.deg}",
-        dec="{config.roi_config.center.icrs.dec.deg}",
+        infile="{file_index.path_obs_id}",
+        outroot="{file_index.path_repro}",
+        ra=np.nan,
+        dec=np.nan,
         spectrumfile="",
     )
 
 
-class SkyCoordConfig(GammapyBaseConfig):
+class SkyCoordConfig(BaseConfig):
     frame: FrameEnum = FrameEnum.icrs
     lon: AngleType = Angle("0 deg")
     lat: AngleType = Angle("0 deg")
 
 
-class ROIConfig(GammapyBaseConfig):
+class ROIConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     width: AngleType = Angle("3 arcsec")
 
 
-class EnergyRangeConfig(GammapyBaseConfig):
+class EnergyRangeConfig(BaseConfig):
     min: EnergyType = 0.5 * u.keV
     max: EnergyType = 7 * u.keV
 
 
-class ChandraConfig(GammapyBaseConfig):
+class ChandraConfig(BaseConfig):
     name: str = "my-analysis"
     sub_name: str = "my-config"
     obs_ids: List[int] = [1, 2, 3]

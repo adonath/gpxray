@@ -1,7 +1,7 @@
 from ciao_contrib import runtool
 
 
-def run_ciao_tool(tool_name, config):
+def run_ciao_tool(tool_name, config, file_index):
     """Run ciao tool
 
     Parameters
@@ -12,5 +12,11 @@ def run_ciao_tool(tool_name, config):
         Tools config
     """
     tool = getattr(runtool, tool_name)
-    tool_config = getattr(config, tool_name).to_dict()
-    tool(**tool_config)
+    tool_config = getattr(config.ciao, tool_name)
+
+    kwargs = tool_config.dict()
+
+    for name in tool_config.required_names:
+        kwargs[name] = kwargs[name].format(file_index=file_index)
+
+    tool(**kwargs)
