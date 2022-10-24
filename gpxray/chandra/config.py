@@ -40,14 +40,20 @@ SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 
 
 class CiaoToolsConfig(GammapyBaseConfig):
-    dmcopy: DMCopyConfig = DMCopyConfig(infile="{file_index.}")
+    dmcopy: DMCopyConfig = DMCopyConfig(infile="{file_index.}", outfile="{file_index.}")
     chandra_repro: ChandraReproConfig = ChandraReproConfig(
-        infile="{file_index.}", outfile="{file_index.}"
+        indir="{file_index.}", outdir="{file_index.}"
     )
     reproject_events: ReprojectEventsConfig = ReprojectEventsConfig(
         infile="{file_index.}", outfile="{file_index.}", match="{file_index.}"
     )
-    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(infile="{file_index.}")
+    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
+        infile="{file_index.}",
+        outroot="{file_index.}",
+        ra="{config.roi_config.center.icrs.ra.deg}",
+        dec="{config.roi_config.center.icrs.dec.deg}",
+        spectrumfile="",
+    )
 
 
 class SkyCoordConfig(GammapyBaseConfig):
