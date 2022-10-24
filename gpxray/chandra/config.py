@@ -13,7 +13,7 @@ from pydantic import create_model
 log = logging.getLogger(__name__)
 
 
-CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool}
+CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
 
 def create_ciao_config(toolname, model_name):
@@ -35,11 +35,19 @@ def create_ciao_config(toolname, model_name):
 
 DMCopyConfig = create_ciao_config("dmcopy", "DMCopyConfig")
 ChandraReproConfig = create_ciao_config("chandra_repro", "ChandraReproConfig")
+ReprojectEventsConfig = create_ciao_config("reproject_events", "ReprojectEventsConfig")
+SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 
 
 class CiaoToolsConfig(GammapyBaseConfig):
-    dmcopy: DMCopyConfig = DMCopyConfig(infile="", outfile="")
-    chandra_repro: ChandraReproConfig = ChandraReproConfig(indir="", outdir="")
+    dmcopy: DMCopyConfig = DMCopyConfig(infile="{file_index.}")
+    chandra_repro: ChandraReproConfig = ChandraReproConfig(
+        infile="{file_index.}", outfile="{file_index.}"
+    )
+    reproject_events: ReprojectEventsConfig = ReprojectEventsConfig(
+        infile="{file_index.}", outfile="{file_index.}", match="{file_index.}"
+    )
+    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(infile="{file_index.}")
 
 
 class SkyCoordConfig(GammapyBaseConfig):
