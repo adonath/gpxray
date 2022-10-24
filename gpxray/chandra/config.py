@@ -6,10 +6,12 @@ import numpy as np
 import yaml
 from astropy import units as u
 from astropy.coordinates import Angle
+from astropy.time import Time
+from astropy.units import Quantity
 from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic import create_model
+from pydantic import BaseModel, create_model
 
 log = logging.getLogger(__name__)
 
@@ -17,8 +19,21 @@ log = logging.getLogger(__name__)
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
 
-class BaseConfig(GammapyBaseConfig):
+GammapyBaseConfig.Config.json_encoders[Angle] = lambda v: "None"
+
+
+class BaseConfig(BaseModel):
     """Base config"""
+
+    class Config:
+        validate_all = True
+        validate_assignment = True
+        extra = "forbid"
+        json_encoders = {
+            Angle: lambda v: v.to_string(),
+            Quantity: lambda v: f"{v.value} {v.unit}",
+            Time: lambda v: f"{v.value}",
+        }
 
     @property
     def required_names(self):
@@ -36,6 +51,9 @@ def create_ciao_config(toolname, model_name):
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], Ellipsis)
 
     for par in par_info["opt"]:
+        if par.name == "tg_zo_position":
+            continue
+
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
 
     model = create_model(model_name, __base__=BaseConfig, **parameters)
@@ -68,13 +86,13 @@ class CiaoToolsConfig(BaseConfig):
 
 class SkyCoordConfig(BaseConfig):
     frame: FrameEnum = FrameEnum.icrs
-    lon: AngleType = Angle("0 deg")
-    lat: AngleType = Angle("0 deg")
+    lon: AngleType = Angle("06h35m46.5079301472s")
+    lat: AngleType = Angle("-75d16m16.816418256s")
 
 
 class ROIConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
-    width: AngleType = Angle("3 arcsec")
+    width: AngleType = Angle("5 arcsec")
 
 
 class EnergyRangeConfig(BaseConfig):
@@ -85,8 +103,8 @@ class EnergyRangeConfig(BaseConfig):
 class ChandraConfig(BaseConfig):
     name: str = "my-analysis"
     sub_name: str = "my-config"
-    obs_ids: List[int] = [1, 2, 3]
-    obs_id_ref: int = 1
+    obs_ids: List[int] = [1093]
+    obs_id_ref: int = 1093
     roi: ROIConfig = ROIConfig()
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     ciao: CiaoToolsConfig = CiaoToolsConfig()

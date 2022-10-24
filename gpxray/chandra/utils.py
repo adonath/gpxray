@@ -19,4 +19,5 @@ def run_ciao_tool(tool_name, config, file_index):
     for name in tool_config.required_names:
         kwargs[name] = kwargs[name].format(file_index=file_index)
 
+    tool.punlearn()
     tool(**kwargs)
