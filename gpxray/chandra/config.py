@@ -51,9 +51,6 @@ def create_ciao_config(toolname, model_name):
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], Ellipsis)
 
     for par in par_info["opt"]:
-        if par.name == "tg_zo_position":
-            continue
-
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
 
     model = create_model(model_name, __base__=BaseConfig, **parameters)

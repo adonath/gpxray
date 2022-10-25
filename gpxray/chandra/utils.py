@@ -1,6 +1,11 @@
 from ciao_contrib import runtool
 
 
+def to_ciao_name(name):
+    """Convert parameter name to ciao name"""
+    return name.replace("_", "-")
+
+
 def run_ciao_tool(tool_name, config, file_index):
     """Run ciao tool
 
@@ -10,6 +15,8 @@ def run_ciao_tool(tool_name, config, file_index):
         Tool name to run
     config : `~gpxtay.chandra.config.CiaoToolsConfig`
         Tools config
+    file_index : `ChandraFileIndex`
+        Chandra file index
     """
     with runtool.new_pfiles_environment(ardlib=True):
         tool = getattr(runtool, tool_name)
@@ -18,7 +25,8 @@ def run_ciao_tool(tool_name, config, file_index):
         kwargs = tool_config.dict()
 
         for name in tool_config.required_names:
-            kwargs[name] = kwargs[name].format(file_index=file_index)
+            ciao_name = to_ciao_name(name)
+            kwargs[ciao_name] = kwargs[name].format(file_index=file_index)
 
         tool.punlearn()
         tool(**kwargs)
