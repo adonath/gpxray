@@ -42,11 +42,7 @@ def test_cli_chandra_config(tmp_path):
 
 
 def test_cli_chandra_download(path_config):
-    args = [
-        "chandra",
-        f"--filename={path_config}",
-        "download",
-    ]
+    args = ["chandra", f"--filename={path_config}", "download", "--exclude", "vvref"]
     run_cli(cli, args)
 
     path = path_config.parent / "data/1093/"

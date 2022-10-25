@@ -23,8 +23,15 @@ def cli_chandra_init_config(obj):
 
 
 @click.command(name="download", short_help="Download chandra observation data")
+@click.option(
+    "-e",
+    "--exclude",
+    type=click.STRING,
+    help="Sub selection of data to download",
+    default="",
+)
 @click.pass_obj
-def cli_chandra_download(obj):
+def cli_chandra_download(obj, exclude):
     """Download data"""
     for index in obj.file_indices:
         if index.path_obs_id.exists() and not obj.overwrite:
@@ -33,7 +40,7 @@ def cli_chandra_download(obj):
 
         index.path_data.mkdir(exist_ok=True)
 
-        command = ["download_chandra_obsid", f"{index.obs_id}"]
+        command = ["download_chandra_obsid", f"{index.obs_id}", "--exclude", exclude]
         execute_command(command=command, cwd=f"{index.path_data}")
 
 
@@ -52,8 +59,7 @@ def cli_chandra_reprocess(obj):
 @click.command("reproject-events", short_help="Reproject events to common WCS")
 @click.pass_obj
 def cli_chandra_reproject_events(obj):
-    """Reprocess data"""
-
+    """Reproject events"""
     index_ref = obj.file_index_ref
 
     for index in obj.file_indices:
