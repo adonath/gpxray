@@ -33,5 +33,10 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None):
                 file_index=file_index, file_index_ref=file_index_ref
             )
 
+        if tool_name == "dmcopy":
+            selection = f"[EVENTS][{config.roi.to_dmcopy(wcs=file_index.wcs)}]"
+            selection += f"[{config.energy_range.to_dmcopy()}]"
+            kwargs["infile"] += selection
+
         tool.punlearn()
         tool(**kwargs)

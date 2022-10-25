@@ -12,6 +12,7 @@ from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic import BaseModel, create_model
+from regions import RectangleSkyRegion
 
 log = logging.getLogger(__name__)
 
@@ -65,7 +66,10 @@ SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 
 
 class CiaoToolsConfig(BaseConfig):
-    dmcopy: DMCopyConfig = DMCopyConfig(infile="{file_index.}", outfile="{file_index.}")
+    dmcopy: DMCopyConfig = DMCopyConfig(
+        infile="{file_index.filename_repro_evt2_reprojected}",
+        outfile="{file_index.filename_counts}",
+    )
     chandra_repro: ChandraReproConfig = ChandraReproConfig(
         indir="{file_index.path_obs_id}", outdir="{file_index.path_repro}"
     )
@@ -92,11 +96,29 @@ class SkyCoordConfig(BaseConfig):
 class ROIConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     width: AngleType = Angle("5 arcsec")
+    bin_size: float = 1.0
+
+    @property
+    def region(self):
+        """ROI region"""
+        region = RectangleSkyRegion(
+            center=self.center, width=self.width, height=self.width
+        )
+        return region
+
+    def to_dmcopy(self, wcs):
+        """dmcopy argument"""
+        bbox = self.region.to_pixel(wcs).bounding_box
+        return f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
 
 
 class EnergyRangeConfig(BaseConfig):
     min: EnergyType = 0.5 * u.keV
     max: EnergyType = 7 * u.keV
+
+    def to_dmcopy(self):
+        """dmcopy argument"""
+        return f"energy={self.min.to_value('eV')}:{self.max.to_value('eV')}"
 
 
 class ChandraConfig(BaseConfig):

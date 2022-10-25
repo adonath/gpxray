@@ -4,6 +4,7 @@ import numpy as np
 from astropy import units as u
 from astropy.io import fits
 from astropy.table import Table
+from astropy.utils import lazyproperty
 from astropy.wcs import WCS
 from gammapy.data import EventList
 
@@ -56,6 +57,12 @@ class ChandraFileIndex:
     def __init__(self, obs_id, path="."):
         self.obs_id = obs_id
         self._path = Path(path)
+
+    @lazyproperty
+    def wcs(self):
+        """Get WCS from reprojected events file"""
+        header = fits.getheader(self.filename_repro_evt2_reprojected, "EVENTS")
+        return wcs_from_header_chandra(header=header)
 
     @property
     def path(self):

@@ -76,3 +76,23 @@ def cli_chandra_reproject_events(obj):
             file_index=index,
             file_index_ref=index_ref,
         )
+
+
+@click.command("bin-events", short_help="Bin events into FITS image")
+@click.pass_obj
+def cli_chandra_bin_events(obj):
+    """Bin events"""
+
+    for index in obj.file_indices:
+        if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
+            log.info(
+                f"Skipping reproject events, {index.filename_repro_evt2_reprojected} "
+                "already exists."
+            )
+            continue
+
+        run_ciao_tool(
+            "dmcopy",
+            config=obj.config,
+            file_index=index,
+        )
