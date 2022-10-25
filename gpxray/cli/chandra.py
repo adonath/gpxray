@@ -47,3 +47,26 @@ def cli_chandra_reprocess(obj):
             continue
 
         run_ciao_tool("chandra_repro", config=obj.config, file_index=index)
+
+
+@click.command("reproject-events", short_help="Reproject events to common WCS")
+@click.pass_obj
+def cli_chandra_reproject_events(obj):
+    """Reprocess data"""
+
+    index_ref = obj.file_index_ref
+
+    for index in obj.file_indices:
+        if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
+            log.info(
+                f"Skipping reproject events, {index.filename_repro_evt2_reprojected} "
+                "already exists."
+            )
+            continue
+
+        run_ciao_tool(
+            "reproject_events",
+            config=obj.config,
+            file_index=index,
+            file_index_ref=index_ref,
+        )

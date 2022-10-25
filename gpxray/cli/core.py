@@ -13,6 +13,7 @@ from .chandra import (
     cli_chandra_download,
     cli_chandra_init_config,
     cli_chandra_reprocess,
+    cli_chandra_reproject_events,
 )
 
 
@@ -38,6 +39,13 @@ class ContextObject(object):
             ChandraFileIndex(obs_id=obs_id, path=self.filename.parent)
             for obs_id in self.obs_ids
         ]
+
+    @property
+    def file_index_ref(self):
+        """Reference file index"""
+        return ChandraFileIndex(
+            obs_id=self.config.obs_id_ref, path=self.filename.parent
+        )
 
 
 # We implement the --version following the example from here:
@@ -113,3 +121,4 @@ def cli_chandra(ctx, filename, obs_id, overwrite):
 cli_chandra.add_command(cli_chandra_init_config)
 cli_chandra.add_command(cli_chandra_download)
 cli_chandra.add_command(cli_chandra_reprocess)
+cli_chandra.add_command(cli_chandra_reproject_events)

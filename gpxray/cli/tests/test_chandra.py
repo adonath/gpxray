@@ -42,7 +42,6 @@ def test_cli_chandra_config(tmp_path):
 
 
 def test_cli_chandra_download(path_config):
-
     args = [
         "chandra",
         f"--filename={path_config}",
@@ -59,6 +58,18 @@ def test_cli_chandra_reprocess(path_config):
         "chandra",
         f"--filename={path_config}",
         "reprocess",
+    ]
+    run_cli(cli, args)
+
+    path = path_config.parent / "data/1093/repro"
+    assert path.exists()
+
+
+def test_cli_chandra_reproject_events(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "reproject_events",
     ]
     run_cli(cli, args)
 

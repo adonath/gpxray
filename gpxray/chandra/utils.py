@@ -6,7 +6,7 @@ def to_ciao_name(name):
     return name.replace("_", "-")
 
 
-def run_ciao_tool(tool_name, config, file_index):
+def run_ciao_tool(tool_name, config, file_index, file_index_ref=None):
     """Run ciao tool
 
     Parameters
@@ -17,6 +17,8 @@ def run_ciao_tool(tool_name, config, file_index):
         Tools config
     file_index : `ChandraFileIndex`
         Chandra file index
+    file_index_ref :  `ChandraFileIndex`
+        Reference file index
     """
     with runtool.new_pfiles_environment(ardlib=True):
         tool = getattr(runtool, tool_name)
