@@ -54,9 +54,10 @@ def read_event_list_chandra(filename):
 class ChandraFileIndex:
     """File index class"""
 
-    def __init__(self, obs_id, path="."):
+    def __init__(self, obs_id, path=".", path_output="my-config"):
         self.obs_id = obs_id
         self._path = Path(path)
+        self._path_output = Path(path_output)
 
     @lazyproperty
     def wcs(self):
@@ -119,3 +120,23 @@ class ChandraFileIndex:
         filename = filename.strip()
         filename = filename.replace(".fits", ".fits.gz")
         return self.path_base / filename
+
+    @property
+    def path_output(self):
+        """Output path"""
+        return self._path_output / self.obs_id
+
+    @property
+    def filename_counts(self):
+        """Filename counts"""
+        return self.path_output / "counts.fits"
+
+    @property
+    def filename_psf(self):
+        """Filename counts"""
+        return self.path_output / "psf.fits"
+
+    @property
+    def filename_exposure(self):
+        """Filename counts"""
+        return self.path_output / "psf.fits"

@@ -82,11 +82,10 @@ def cli_chandra_reproject_events(obj):
 @click.pass_obj
 def cli_chandra_bin_events(obj):
     """Bin events"""
-
     for index in obj.file_indices:
         if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
             log.info(
-                f"Skipping reproject events, {index.filename_repro_evt2_reprojected} "
+                f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
                 "already exists."
             )
             continue
