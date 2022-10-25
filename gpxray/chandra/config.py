@@ -72,7 +72,7 @@ class CiaoToolsConfig(BaseConfig):
     reproject_events: ReprojectEventsConfig = ReprojectEventsConfig(
         infile="{file_index.filename_repro_evt2}",
         outfile="{file_index.filename_repro_evt2_reprojected}",
-        match="{file_index_ref.filename_repro_evt2}}",
+        match="{file_index_ref.filename_repro_evt2}",
     )
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
         infile="{file_index.path_obs_id}",

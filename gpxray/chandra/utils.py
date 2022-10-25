@@ -28,7 +28,10 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None):
 
         for name in tool_config.required_names:
             ciao_name = to_ciao_name(name)
-            kwargs[ciao_name] = kwargs[name].format(file_index=file_index)
+
+            kwargs[ciao_name] = kwargs[name].format(
+                file_index=file_index, file_index_ref=file_index_ref
+            )
 
         tool.punlearn()
         tool(**kwargs)
