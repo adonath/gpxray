@@ -95,3 +95,25 @@ def cli_chandra_bin_events(obj):
             config=obj.config,
             file_index=index,
         )
+
+
+@click.command("simulate-psf", short_help="Simulate PSF")
+@click.pass_obj
+def cli_chandra_simulate_psf(obj):
+    """Simulate psf"""
+    for index in obj.file_indices:
+        for name, irf_config in obj.config.irfs.items():
+            print(name, irf_config)
+
+        # if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
+        #     log.info(
+        #         f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
+        #         "already exists."
+        #     )
+        #     continue
+
+        # run_ciao_tool(
+        #     "dmcopy",
+        #     config=obj.config,
+        #     file_index=index,
+        # )

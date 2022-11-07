@@ -71,3 +71,15 @@ def test_cli_chandra_reproject_events(path_config):
 
     path = path_config.parent / "data/1093/repro/acisf01093_repro_evt2_reprojected.fits"
     assert path.exists()
+
+
+def test_cli_chandra_simulate_psf(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "simulate-psf",
+    ]
+    run_cli(cli, args)
+
+    path = path_config.parent / "data/1093/repro/acisf01093_repro_evt2_reprojected.fits"
+    assert path.exists()

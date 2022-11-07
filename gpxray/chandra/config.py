@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import yaml
@@ -40,6 +40,24 @@ class BaseConfig(BaseModel):
     def required_names(self):
         """Get required field names"""
         return [field.name for field in self.__fields__.values() if field.required]
+
+    def __str__(self):
+        """Display settings in pretty YAML format."""
+        info = self.__class__.__name__ + "\n\n\t"
+        data = self.to_yaml()
+        data = data.replace("\n", "\n\t")
+        info += data
+        return info.expandtabs(tabsize=2)
+
+    def to_yaml(self):
+        """Convert to YAML string."""
+        # Here using `dict()` instead of `json()` would be more natural.
+        # We should change this once pydantic adds support for custom encoders
+        # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
+        config = json.loads(self.json())
+        return yaml.dump(
+            config, sort_keys=False, indent=4, width=80, default_flow_style=False
+        )
 
 
 def create_ciao_config(toolname, model_name):
@@ -93,6 +111,19 @@ class SkyCoordConfig(BaseConfig):
     lat: AngleType = Angle("-75d16m16.816418256s")
 
 
+class PerSourceSimulatePSFConfig(BaseConfig):
+    center: SkyCoordConfig = SkyCoordConfig()
+    flux: float = 1e-5
+    spectrumfile: str = ""
+    pileup: bool = True
+    readout_streak: bool = True
+    minsize: int = 25
+
+
+class IRFConfig(BaseConfig):
+    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
+
+
 class ROIConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     width: AngleType = Angle("5 arcsec")
@@ -128,15 +159,8 @@ class ChandraConfig(BaseConfig):
     obs_id_ref: int = 1093
     roi: ROIConfig = ROIConfig()
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
+    irfs: Dict[str, IRFConfig] = {"pks-0637": IRFConfig()}
     ciao: CiaoToolsConfig = CiaoToolsConfig()
-
-    def __str__(self):
-        """Display settings in pretty YAML format."""
-        info = self.__class__.__name__ + "\n\n\t"
-        data = self.to_yaml()
-        data = data.replace("\n", "\n\t")
-        info += data
-        return info.expandtabs(tabsize=2)
 
     @classmethod
     def read(cls, path):
@@ -159,13 +183,3 @@ class ChandraConfig(BaseConfig):
             raise IOError(f"File exists already: {path}")
 
         path.write_text(self.to_yaml())
-
-    def to_yaml(self):
-        """Convert to YAML string."""
-        # Here using `dict()` instead of `json()` would be more natural.
-        # We should change this once pydantic adds support for custom encoders
-        # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
-        config = json.loads(self.json())
-        return yaml.dump(
-            config, sort_keys=False, indent=4, width=80, default_flow_style=False
-        )
