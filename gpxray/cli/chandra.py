@@ -101,7 +101,7 @@ def cli_chandra_bin_events(obj):
 @click.pass_obj
 def cli_chandra_compute_exposure(obj):
     """Compute exposure image"""
-    # TODO: take into account spatial dependence...
+    # TODO: take into account spatial dependence and maybe compute absolute exposure...
     exposure_ref = obj.file_index_ref.index_table.meta["EXPOSURE"]
 
     for index in obj.file_indices:
@@ -113,9 +113,9 @@ def cli_chandra_compute_exposure(obj):
             continue
 
         value = index.index_table.meta["EXPOSURE"]
-        header = fits.getheader(index.filename_jolideco_input_counts)
+        header = fits.getheader(index.filename_counts)
         shape = header["NAXIS2"], header["NAXIS1"]
-        data = value / exposure_ref * np.ones(shape)
+        data = value * np.ones(shape) / exposure_ref
         hdu = fits.PrimaryHDU(data=data, header=WCS(header).to_header())
 
         hdulist = fits.HDUList([hdu])
@@ -123,7 +123,7 @@ def cli_chandra_compute_exposure(obj):
         filename = index.filename_exposure
         log.info(f"Writing {filename}")
 
-        hdulist.writeto(filename, overwrite=obj.ovewrite)
+        hdulist.writeto(filename, overwrite=obj.overwrite)
 
 
 @click.command("simulate-psf", short_help="Simulate PSF FITS image")

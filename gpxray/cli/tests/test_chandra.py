@@ -81,7 +81,19 @@ def test_cli_chandra_bin_events(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/counts.fits"
+    path = path_config.parent / "my-config/1093/counts.fits"
+    assert path.exists()
+
+
+def test_cli_chandra_compute_exposure(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "compute-exposure",
+    ]
+    run_cli(cli, args)
+
+    path = path_config.parent / "my-config/1093/exposure.fits"
     assert path.exists()
 
 
