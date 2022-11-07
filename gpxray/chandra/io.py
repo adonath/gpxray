@@ -124,7 +124,9 @@ class ChandraFileIndex:
     @property
     def path_output(self):
         """Output path"""
-        return self._path_output / self.obs_id
+        path = self._path_output / f"{self.obs_id}"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
     @property
     def filename_counts(self):

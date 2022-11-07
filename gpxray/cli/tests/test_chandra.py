@@ -73,6 +73,19 @@ def test_cli_chandra_reproject_events(path_config):
     assert path.exists()
 
 
+def test_cli_chandra_bin_events(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "bin-events",
+    ]
+    run_cli(cli, args)
+
+    path = path_config.parent / "my-config/counts.fits"
+    assert path.exists()
+
+
+@pytest.mark.skip
 def test_cli_chandra_simulate_psf(path_config):
     args = [
         "chandra",

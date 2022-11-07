@@ -28,7 +28,7 @@ def cli_chandra_init_config(obj):
     "--exclude",
     type=click.STRING,
     help="Sub selection of data to download",
-    default="",
+    default="vvref",
 )
 @click.pass_obj
 def cli_chandra_download(obj, exclude):
@@ -83,11 +83,8 @@ def cli_chandra_reproject_events(obj):
 def cli_chandra_bin_events(obj):
     """Bin events"""
     for index in obj.file_indices:
-        if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
-            log.info(
-                f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
-                "already exists."
-            )
+        if index.filename_counts.exists() and not obj.overwrite:
+            log.info(f"Skipping bin events, {index.filename_counts} " "already exists.")
             continue
 
         run_ciao_tool(
@@ -105,15 +102,25 @@ def cli_chandra_simulate_psf(obj):
         for name, irf_config in obj.config.irfs.items():
             print(name, irf_config)
 
-        # if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
-        #     log.info(
-        #         f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
-        #         "already exists."
-        #     )
-        #     continue
+            if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
+                log.info(
+                    f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
+                    "already exists."
+                )
+                continue
 
-        # run_ciao_tool(
-        #     "dmcopy",
-        #     config=obj.config,
-        #     file_index=index,
-        # )
+            run_ciao_tool(
+                "dmcopy",
+                config=obj.config,
+                file_index=index,
+            )
+
+
+@click.command("all", short_help="Run all commands")
+@click.pass_context
+def cli_chandra_all(ctx):
+    """Run all commands"""
+    ctx.forward(cli_chandra_download)
+    ctx.forward(cli_chandra_reprocess)
+    ctx.forward(cli_chandra_reproject_events)
+    ctx.forward(cli_chandra_bin_events)

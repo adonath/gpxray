@@ -5,7 +5,7 @@ from typing import Dict, List
 import numpy as np
 import yaml
 from astropy import units as u
-from astropy.coordinates import Angle
+from astropy.coordinates import Angle, SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
 from ciao_contrib import runtool
@@ -114,10 +114,21 @@ class SkyCoordConfig(BaseConfig):
 class PerSourceSimulatePSFConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     flux: float = 1e-5
-    spectrumfile: str = ""
     pileup: bool = True
     readout_streak: bool = True
     minsize: int = 25
+
+    def to_ciao(self):
+        """Convert to ciao config"""
+        config = SimulatePSFConfig()
+
+        config.ra = self.center.icrs.ra.deg
+        config.dec = self.center.icrs.dec.deg
+        config.flux = self.flux
+        config.pileup = self.pileup
+        config.readout_streak = self.readout_streak
+        config.minsize = self.minsize
+        return config
 
 
 class IRFConfig(BaseConfig):
@@ -132,12 +143,11 @@ class ROIConfig(BaseConfig):
     @property
     def region(self):
         """ROI region"""
-        region = RectangleSkyRegion(
-            center=self.center, width=self.width, height=self.width
-        )
+        center = SkyCoord(self.center.lon, self.center.lat, frame=self.center.frame)
+        region = RectangleSkyRegion(center=center, width=self.width, height=self.width)
         return region
 
-    def to_dmcopy(self, wcs):
+    def to_ciao(self, wcs):
         """dmcopy argument"""
         bbox = self.region.to_pixel(wcs).bounding_box
         return f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
@@ -147,7 +157,7 @@ class EnergyRangeConfig(BaseConfig):
     min: EnergyType = 0.5 * u.keV
     max: EnergyType = 7 * u.keV
 
-    def to_dmcopy(self):
+    def to_ciao(self):
         """dmcopy argument"""
         return f"energy={self.min.to_value('eV')}:{self.max.to_value('eV')}"
 
