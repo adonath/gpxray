@@ -6,7 +6,7 @@ def to_ciao_name(name):
     return name.replace("_", "-")
 
 
-def run_ciao_tool(tool_name, config, file_index, file_index_ref=None):
+def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=None):
     """Run ciao tool
 
     Parameters
@@ -29,8 +29,15 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None):
         for name in tool_config.required_names:
             ciao_name = to_ciao_name(name)
 
-            kwargs[ciao_name] = kwargs[name].format(
-                file_index=file_index, file_index_ref=file_index_ref
+            value = kwargs[name]
+
+            if not isinstance(value, str):
+                continue
+
+            kwargs[ciao_name] = value.format(
+                file_index=file_index,
+                file_index_ref=file_index_ref,
+                irf_label=irf_label,
             )
 
         if tool_name == "dmcopy":

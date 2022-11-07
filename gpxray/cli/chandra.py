@@ -126,24 +126,39 @@ def cli_chandra_compute_exposure(obj):
         hdulist.writeto(filename, overwrite=obj.overwrite)
 
 
+# def copy_psf(path_input, path_output):
+#     """Copy PSF to output folder"""
+#     command = ["cp", f"{loc.filename_psf_marx}", f"{loc.path_jolideco_input}"]
+#     execute_command(command=command)
+
+#     command = [
+#         "mv",
+#         f"{loc.path_jolideco_input}/psf",
+#         f"{loc.path_jolideco_input}/psf.fits",
+#     ]
+#     execute_command(command=command)
+
+
 @click.command("simulate-psf", short_help="Simulate PSF FITS image")
 @click.pass_obj
 def cli_chandra_simulate_psf(obj):
     """Simulate psf"""
     for index in obj.file_indices:
         for name, irf_config in obj.config.irfs.items():
-            if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
-                log.info(
-                    f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
-                    "already exists."
-                )
+            filename_psf = index.filenames_psf[name]
+
+            if filename_psf.exists() and not obj.overwrite:
+                log.info(f"Skipping simulate-psf, {filename_psf} " "already exists.")
                 continue
 
+            config_psf = irf_config.psf.to_ciao()
+            obj.config.ciao.simulate_psf = config_psf
+
             run_ciao_tool(
-                "dmcopy",
-                config=obj.config,
-                file_index=index,
+                "simulate_psf", config=obj.config, file_index=index, irf_label=name
             )
+
+            # copy_psf()
 
 
 @click.command("all", short_help="Run all commands")
@@ -155,3 +170,4 @@ def cli_chandra_all(ctx):
     ctx.forward(cli_chandra_reproject_events)
     ctx.forward(cli_chandra_bin_events)
     ctx.forward(cli_chandra_compute_exposure)
+    ctx.forward(cli_chandra_simulate_psf)

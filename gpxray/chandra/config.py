@@ -97,11 +97,13 @@ class CiaoToolsConfig(BaseConfig):
         match="{file_index_ref.filename_repro_evt2}",
     )
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
-        infile="{file_index.path_obs_id}",
-        outroot="{file_index.path_repro}",
+        infile="{file_index.filename_repro_evt2_reprojected}",
+        outroot="{file_index.filenames_psf}[{irf_label}]",
         ra=np.nan,
         dec=np.nan,
         spectrumfile="",
+        monoenergy=1.5,
+        extended=False,
     )
 
 
@@ -120,14 +122,18 @@ class PerSourceSimulatePSFConfig(BaseConfig):
 
     def to_ciao(self):
         """Convert to ciao config"""
-        config = SimulatePSFConfig()
+        center = SkyCoord(self.center.lon, self.center.lat, frame=self.center.frame)
 
-        config.ra = self.center.icrs.ra.deg
-        config.dec = self.center.icrs.dec.deg
-        config.flux = self.flux
-        config.pileup = self.pileup
-        config.readout_streak = self.readout_streak
-        config.minsize = self.minsize
+        config = SimulatePSFConfig(
+            infile="{file_index.filename_repro_evt2_reprojected}",
+            outroot="{file_index.filenames_psf}[{irf_label}]",
+            ra=center.icrs.ra.deg,
+            dec=center.icrs.dec.deg,
+            flux=self.flux,
+            pileup=self.pileup,
+            readout_streak=self.readout_streak,
+            minsize=self.minsize,
+        )
         return config
 
 

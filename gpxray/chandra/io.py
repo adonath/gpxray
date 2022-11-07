@@ -54,10 +54,16 @@ def read_event_list_chandra(filename):
 class ChandraFileIndex:
     """File index class"""
 
-    def __init__(self, obs_id, path=".", path_output="my-config"):
+    def __init__(self, obs_id, path=".", path_output="my-config", irf_names=None):
         self.obs_id = obs_id
         self._path = Path(path)
         self._path_output = Path(path_output)
+        self._irf_names = irf_names
+
+    @property
+    def irf_names(self):
+        """IRF names"""
+        return self._irf_names
 
     @lazyproperty
     def wcs(self):
@@ -91,11 +97,16 @@ class ChandraFileIndex:
         return self.path_obs_id / "repro"
 
     @property
-    def path_psf(self):
+    def paths_psf(self):
         """PSF data path"""
-        path = self.path_obs_id / "psf"
-        path.mkdir(parents=True, exist_ok=True)
-        return path
+        paths = {}
+
+        for name in self.irf_names:
+            path = self.path_obs_id / f"psf-{name}"
+            path.mkdir(parents=True, exist_ok=True)
+            paths[name] = path
+
+        return paths
 
     @property
     def filename_repro_evt2(self):
@@ -134,9 +145,15 @@ class ChandraFileIndex:
         return self.path_output / "counts.fits"
 
     @property
-    def filename_psf(self):
+    def filenames_psf(self):
         """Filename counts"""
-        return self.path_output / "psf.fits"
+        filenames = {}
+
+        for name in self.irf_names:
+            filename = self.path_output / "psf" / "psf-{name}.fits"
+            filenames[name] = filename
+
+        return filenames
 
     @property
     def filename_exposure(self):

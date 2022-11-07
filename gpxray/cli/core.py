@@ -53,7 +53,10 @@ class ContextObject(object):
 
         for obs_id in self.obs_ids:
             index = ChandraFileIndex(
-                obs_id=obs_id, path=self.path, path_output=self.path_output
+                obs_id=obs_id,
+                path=self.path,
+                path_output=self.path_output,
+                irf_names=list(self.config.irfs),
             )
             indices.append(index)
 
