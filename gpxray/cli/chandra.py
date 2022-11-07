@@ -3,6 +3,9 @@ import logging
 import subprocess
 
 import click
+import numpy as np
+from astropy.io import fits
+from astropy.wcs import WCS
 
 from gpxray.chandra.utils import run_ciao_tool
 
@@ -94,14 +97,41 @@ def cli_chandra_bin_events(obj):
         )
 
 
-@click.command("simulate-psf", short_help="Simulate PSF")
+@click.command("compute-exposure", short_help="Compute exposure FITS image")
+@click.pass_obj
+def cli_chandra_compute_exposure(obj):
+    """Compute exposure image"""
+    # TODO: take into account spatial dependence...
+    exposure_ref = obj.file_index_ref.index_table.meta["EXPOSURE"]
+
+    for index in obj.file_indices:
+        if index.filename_exposure.exists() and not obj.overwrite:
+            log.info(
+                f"Skipping compute exposure, {index.filename_exposure} "
+                "already exists."
+            )
+            continue
+
+        value = index.index_table.meta["EXPOSURE"]
+        header = fits.getheader(index.filename_jolideco_input_counts)
+        shape = header["NAXIS2"], header["NAXIS1"]
+        data = value / exposure_ref * np.ones(shape)
+        hdu = fits.PrimaryHDU(data=data, header=WCS(header).to_header())
+
+        hdulist = fits.HDUList([hdu])
+
+        filename = index.filename_exposure
+        log.info(f"Writing {filename}")
+
+        hdulist.writeto(filename, overwrite=obj.ovewrite)
+
+
+@click.command("simulate-psf", short_help="Simulate PSF FITS image")
 @click.pass_obj
 def cli_chandra_simulate_psf(obj):
     """Simulate psf"""
     for index in obj.file_indices:
         for name, irf_config in obj.config.irfs.items():
-            print(name, irf_config)
-
             if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
                 log.info(
                     f"Skipping bin events, {index.filename_repro_evt2_reprojected} "
@@ -124,3 +154,4 @@ def cli_chandra_all(ctx):
     ctx.forward(cli_chandra_reprocess)
     ctx.forward(cli_chandra_reproject_events)
     ctx.forward(cli_chandra_bin_events)
+    ctx.forward(cli_chandra_compute_exposure)

@@ -12,6 +12,7 @@ from gpxray.chandra.io import ChandraFileIndex
 from .chandra import (
     cli_chandra_all,
     cli_chandra_bin_events,
+    cli_chandra_compute_exposure,
     cli_chandra_download,
     cli_chandra_init_config,
     cli_chandra_reprocess,
@@ -141,5 +142,6 @@ cli_chandra.add_command(cli_chandra_download)
 cli_chandra.add_command(cli_chandra_reprocess)
 cli_chandra.add_command(cli_chandra_reproject_events)
 cli_chandra.add_command(cli_chandra_bin_events)
+cli_chandra.add_command(cli_chandra_compute_exposure)
 cli_chandra.add_command(cli_chandra_simulate_psf)
 cli_chandra.add_command(cli_chandra_all)

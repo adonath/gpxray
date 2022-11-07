@@ -141,4 +141,4 @@ class ChandraFileIndex:
     @property
     def filename_exposure(self):
         """Filename counts"""
-        return self.path_output / "psf.fits"
+        return self.path_output / "exposure.fits"
