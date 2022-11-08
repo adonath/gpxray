@@ -12,7 +12,7 @@ from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic import BaseModel, create_model
-from regions import RectangleSkyRegion
+from regions import CircleSkyRegion, RectangleSkyRegion
 
 log = logging.getLogger(__name__)
 
@@ -94,6 +94,7 @@ DMCopyConfig = create_ciao_config("dmcopy", "DMCopyConfig")
 ChandraReproConfig = create_ciao_config("chandra_repro", "ChandraReproConfig")
 ReprojectEventsConfig = create_ciao_config("reproject_events", "ReprojectEventsConfig")
 SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
+SpecExtractConfig = create_ciao_config("specextract", "SpecExtractConfig")
 
 
 class CiaoToolsConfig(BaseConfig):
@@ -117,6 +118,19 @@ class CiaoToolsConfig(BaseConfig):
         # spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
         spectrumfile="",
     )
+    specextract: SpecExtractConfig = SpecExtractConfig(
+        infile="{file_index.filename_repro_evt2_reprojected}",
+        outroot="{{file_index.paths_spectra[{irf_label}]}}/{irf_label}",
+    )
+
+
+class EnergyRangeConfig(BaseConfig):
+    min: EnergyType = 0.5 * u.keV
+    max: EnergyType = 7 * u.keV
+
+    def to_ciao(self):
+        """dmcopy argument"""
+        return f"energy={self.min.to_value('eV')}:{self.max.to_value('eV')}"
 
 
 class SkyCoordConfig(BaseConfig):
@@ -141,20 +155,49 @@ class PerSourceSimulatePSFConfig(BaseConfig):
 
 class IRFConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
+    radius: AngleType = Angle(20 * u.arcsec)
+    energy_range: EnergyRangeConfig = EnergyRangeConfig()
     psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
+
+    @property
+    def region(self):
+        """Spectral extraction region"""
+        return CircleSkyRegion(center=self.center.sky_coord, radius=self.radius)
+
+    def to_ciao_spec_extract(self, wcs):
+        """Spectrum extract region to ciao string"""
+        region_pix = self.region.to_pixel(wcs=wcs)
+        x, y = region_pix.center.x, region_pix.center.y
+        value = f"[sky=circle({x},{y},{region_pix.radius})]"
+        return value
+
+    @property
+    def psf_config_update(self):
+        """Simulate psf config update"""
+        config_psf = self.psf.dict()
+        center = self.center.sky_coord
+        config_psf["ra"] = center.icrs.ra.deg
+        config_psf["dec"] = center.icrs.dec.deg
+        return config_psf
+
+    @property
+    def spec_extract_config_update(self):
+        """Specextract config update"""
+        data = {}
+        energy = self.energy_range
+        data[
+            "energy"
+        ] = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:0.01"
+        return data
 
     @property
     def ciao(self):
         """Simulate PSF config"""
         config = CiaoToolsConfig()
-
-        config_psf = self.psf.dict()
-
-        center = self.center.sky_coord
-        config_psf["ra"] = center.icrs.ra.deg
-        config_psf["dec"] = center.icrs.dec.deg
-
-        config.simulate_psf = config.simulate_psf.copy(update=config_psf)
+        config.simulate_psf = config.simulate_psf.copy(update=self.psf_config_update)
+        config.specextract = config.specextract.copy(
+            update=self.spec_extract_config_update
+        )
         return config
 
 
@@ -175,15 +218,6 @@ class ROIConfig(BaseConfig):
         """dmcopy argument"""
         bbox = self.region.to_pixel(wcs).bounding_box
         return f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
-
-
-class EnergyRangeConfig(BaseConfig):
-    min: EnergyType = 0.5 * u.keV
-    max: EnergyType = 7 * u.keV
-
-    def to_ciao(self):
-        """dmcopy argument"""
-        return f"energy={self.min.to_value('eV')}:{self.max.to_value('eV')}"
 
 
 class ChandraConfig(BaseConfig):

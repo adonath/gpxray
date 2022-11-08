@@ -102,7 +102,19 @@ class ChandraFileIndex:
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_obs_id / f"psf-{name}"
+            path = self.path_output / f"psf-{name}"
+            path.mkdir(parents=True, exist_ok=True)
+            paths[name] = path
+
+        return paths
+
+    @property
+    def paths_spectra(self):
+        """Spectrum data path"""
+        paths = {}
+
+        for name in self.irf_names:
+            path = self.path_output / f"spectrum-{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 

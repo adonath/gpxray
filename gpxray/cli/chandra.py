@@ -126,6 +126,25 @@ def cli_chandra_compute_exposure(obj):
         hdulist.writeto(filename, overwrite=obj.overwrite)
 
 
+@click.command("extract-spectra", short_help="Extract spectra, arfs and rmfs")
+@click.pass_obj
+def cli_chandra_extract_spectra(obj):
+    """Extract spectra"""
+    for index in obj.file_indices:
+        for name, irf_config in obj.config.irfs.items():
+            filename_spectrum = index.filenames_spectra[name]
+
+            if filename_spectrum.exists() and not obj.overwrite:
+                log.info(
+                    f"Skipping extact spectrum, {filename_spectrum} " "already exists."
+                )
+                continue
+
+            run_ciao_tool(
+                "specextract", config=irf_config, file_index=index, irf_label=name
+            )
+
+
 def copy_file(path_input, path_output):
     """Copy file from path input to output"""
     command = ["cp", f"{path_input}", f"{path_output}"]
@@ -160,4 +179,5 @@ def cli_chandra_all(ctx):
     ctx.forward(cli_chandra_reproject_events)
     ctx.forward(cli_chandra_bin_events)
     ctx.forward(cli_chandra_compute_exposure)
+    ctx.forward(cli_chandra_extract_spectra)
     ctx.forward(cli_chandra_simulate_psf)
