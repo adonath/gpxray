@@ -1,11 +1,6 @@
 from ciao_contrib import runtool
 
 
-def to_ciao_name(name):
-    """Convert parameter name to ciao name"""
-    return name.replace("_", "-")
-
-
 def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=None):
     """Run ciao tool
 
@@ -24,23 +19,9 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=
         tool = getattr(runtool, tool_name)
         tool_config = getattr(config.ciao, tool_name)
 
-        kwargs = tool_config.dict()
-
-        for name in tool_config.required_names:
-            ciao_name = to_ciao_name(name)
-
-            value = kwargs[name]
-
-            if not isinstance(value, str):
-                continue
-
-            if "irf_label" in value:
-                value = value.format(irf_label=irf_label)
-
-            kwargs[ciao_name] = value.format(
-                file_index=file_index,
-                file_index_ref=file_index_ref,
-            )
+        kwargs = tool_config.to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
 
         if tool_name == "dmcopy":
             selection = f"[EVENTS][{config.roi.to_ciao(wcs=file_index.wcs)}]"

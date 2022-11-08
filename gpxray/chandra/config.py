@@ -41,23 +41,36 @@ class BaseConfig(BaseModel):
         """Get required field names"""
         return [field.name for field in self.__fields__.values() if field.required]
 
-    def __str__(self):
-        """Display settings in pretty YAML format."""
-        info = self.__class__.__name__ + "\n\n\t"
-        data = self.to_yaml()
-        data = data.replace("\n", "\n\t")
-        info += data
-        return info.expandtabs(tabsize=2)
 
-    def to_yaml(self):
-        """Convert to YAML string."""
-        # Here using `dict()` instead of `json()` would be more natural.
-        # We should change this once pydantic adds support for custom encoders
-        # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
-        config = json.loads(self.json())
-        return yaml.dump(
-            config, sort_keys=False, indent=4, width=80, default_flow_style=False
-        )
+def to_ciao_name(name):
+    """Convert parameter name to ciao name"""
+    return name.replace("_", "-")
+
+
+class CiaoBaseConfig(BaseConfig):
+    """Ciao tools base config"""
+
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
+        """Convert to ciao config dict"""
+        kwargs = self.dict()
+
+        for name in self.required_names:
+            ciao_name = to_ciao_name(name)
+
+            value = kwargs[name]
+
+            if not isinstance(value, str):
+                continue
+
+            if irf_label and "irf_label" in value:
+                value = value.format(irf_label=irf_label)
+
+            kwargs[ciao_name] = value.format(
+                file_index=file_index,
+                file_index_ref=file_index_ref,
+            )
+
+        return kwargs
 
 
 def create_ciao_config(toolname, model_name):
@@ -72,7 +85,7 @@ def create_ciao_config(toolname, model_name):
     for par in par_info["opt"]:
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
 
-    model = create_model(model_name, __base__=BaseConfig, **parameters)
+    model = create_model(model_name, __base__=CiaoBaseConfig, **parameters)
 
     return model
 
@@ -101,7 +114,7 @@ class CiaoToolsConfig(BaseConfig):
         outroot="{{file_index.filenames_psf[{irf_label}]}}",
         ra=np.nan,
         dec=np.nan,
-        spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
+        # spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
     )
 
 
@@ -129,11 +142,14 @@ class IRFConfig(BaseConfig):
     def ciao(self):
         """Simulate PSF config"""
         config = CiaoToolsConfig()
+
+        config_psf = self.psf.dict()
+
         center = self.center.sky_coord
-        config.simulate_psf.ra = center.icrs.ra.deg
-        config.simulate_psf.dec = center.icrs.dec.deg
-        config.simulate_psf.pileup = self.psf.pileup
-        config.simulate_psf.readout_streak = self.psf.readout_streak
+        config_psf["ra"] = center.icrs.ra.deg
+        config_psf["dec"] = center.icrs.dec.deg
+
+        config.simulate_psf = config.simulate_psf.copy(update=config_psf)
         return config
 
 
@@ -196,3 +212,24 @@ class ChandraConfig(BaseConfig):
             raise IOError(f"File exists already: {path}")
 
         path.write_text(self.to_yaml())
+
+    def __str__(self):
+        """Display settings in pretty YAML format."""
+        info = self.__class__.__name__ + "\n\n\t"
+        data = self.to_yaml()
+        data = data.replace("\n", "\n\t")
+        info += data
+        return info.expandtabs(tabsize=2)
+
+    def to_yaml(self):
+        """Convert to YAML string."""
+        # Here using `dict()` instead of `json()` would be more natural.
+        # We should change this once pydantic adds support for custom encoders
+        # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
+
+        data = self.json()
+
+        config = json.loads(data)
+        return yaml.dump(
+            config, sort_keys=False, indent=4, width=80, default_flow_style=False
+        )
