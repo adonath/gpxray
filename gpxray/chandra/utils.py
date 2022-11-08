@@ -34,10 +34,12 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=
             if not isinstance(value, str):
                 continue
 
+            if "irf_label" in value:
+                value = value.format(irf_label=irf_label)
+
             kwargs[ciao_name] = value.format(
                 file_index=file_index,
                 file_index_ref=file_index_ref,
-                irf_label=irf_label,
             )
 
         if tool_name == "dmcopy":

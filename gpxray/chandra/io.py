@@ -150,7 +150,7 @@ class ChandraFileIndex:
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output / "psf" / "psf-{name}.fits"
+            filename = self.path_output / "psf" / f"psf-{name}.fits"
             filenames[name] = filename
 
         return filenames
@@ -161,7 +161,7 @@ class ChandraFileIndex:
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output / "spectra" / "spectrum-{name}.fits"
+            filename = self.path_output / "spectra" / f"spectrum-{name}.fits"
             filenames[name] = filename
 
         return filenames

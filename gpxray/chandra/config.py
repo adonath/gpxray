@@ -11,7 +11,7 @@ from astropy.units import Quantity
 from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic import BaseModel, create_model, root_validator
+from pydantic import BaseModel, create_model
 from regions import RectangleSkyRegion
 
 log = logging.getLogger(__name__)
@@ -98,10 +98,10 @@ class CiaoToolsConfig(BaseConfig):
     )
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
         infile="{file_index.filename_repro_evt2_reprojected}",
-        outroot="{file_index.filenames_psf}[{irf_label}]",
+        outroot="{{file_index.filenames_psf[{irf_label}]}}",
         ra=np.nan,
         dec=np.nan,
-        spectrumfile="{file_index.filenames_spectra}[{irf_label}]}",
+        spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
     )
 
 
@@ -116,17 +116,25 @@ class SkyCoordConfig(BaseConfig):
         return SkyCoord(self.lon, self.lat, frame=self.frame)
 
 
+class PerSourceSimulatePSFConfig(BaseConfig):
+    pileup: bool = False
+    readout_streak: bool = False
+
+
 class IRFConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
-    psf: SimulatePSFConfig = CiaoToolsConfig().simulate_psf
+    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
 
-    @root_validator(allow_reuse=True)
-    def update_psf_config(cls, value):
-        """Update PSF ra/dec from IRF config"""
-        center = value["center"].sky_coord
-        value["psf"].ra = center.icrs.ra.deg
-        value["psf"].dec = center.icrs.dec.deg
-        return value
+    @property
+    def ciao(self):
+        """Simulate PSF config"""
+        config = CiaoToolsConfig()
+        center = self.center.sky_coord
+        config.simulate_psf.ra = center.icrs.ra.deg
+        config.simulate_psf.dec = center.icrs.dec.deg
+        config.simulate_psf.pileup = self.psf.pileup
+        config.simulate_psf.readout_streak = self.psf.readout_streak
+        return config
 
 
 class ROIConfig(BaseConfig):
@@ -188,13 +196,3 @@ class ChandraConfig(BaseConfig):
             raise IOError(f"File exists already: {path}")
 
         path.write_text(self.to_yaml())
-
-    @root_validator()
-    def update_irf_config(cls, value):
-        """Update IRF config"""
-        config_psf = value["ciao"].simulate_psf
-
-        for config in value["irfs"].values():
-            config.psf = config_psf.copy(update=config.psf.dict())
-
-        return value

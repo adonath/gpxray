@@ -151,11 +151,8 @@ def cli_chandra_simulate_psf(obj):
                 log.info(f"Skipping simulate-psf, {filename_psf} " "already exists.")
                 continue
 
-            config_psf = irf_config.psf.to_ciao()
-            obj.config.ciao.simulate_psf = config_psf
-
             run_ciao_tool(
-                "simulate_psf", config=obj.config, file_index=index, irf_label=name
+                "simulate_psf", config=irf_config, file_index=index, irf_label=name
             )
 
             # copy_psf()
