@@ -11,7 +11,7 @@ from astropy.units import Quantity
 from ciao_contrib import runtool
 from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel, create_model, root_validator
 from regions import RectangleSkyRegion
 
 log = logging.getLogger(__name__)
@@ -101,9 +101,7 @@ class CiaoToolsConfig(BaseConfig):
         outroot="{file_index.filenames_psf}[{irf_label}]",
         ra=np.nan,
         dec=np.nan,
-        spectrumfile="",
-        monoenergy=1.5,
-        extended=False,
+        spectrumfile="{file_index.filenames_spectra}[{irf_label}]}",
     )
 
 
@@ -112,33 +110,23 @@ class SkyCoordConfig(BaseConfig):
     lon: AngleType = Angle("06h35m46.5079301472s")
     lat: AngleType = Angle("-75d16m16.816418256s")
 
-
-class PerSourceSimulatePSFConfig(BaseConfig):
-    center: SkyCoordConfig = SkyCoordConfig()
-    flux: float = 1e-5
-    pileup: bool = True
-    readout_streak: bool = True
-    minsize: int = 25
-
-    def to_ciao(self):
-        """Convert to ciao config"""
-        center = SkyCoord(self.center.lon, self.center.lat, frame=self.center.frame)
-
-        config = SimulatePSFConfig(
-            infile="{file_index.filename_repro_evt2_reprojected}",
-            outroot="{file_index.filenames_psf}[{irf_label}]",
-            ra=center.icrs.ra.deg,
-            dec=center.icrs.dec.deg,
-            flux=self.flux,
-            pileup=self.pileup,
-            readout_streak=self.readout_streak,
-            minsize=self.minsize,
-        )
-        return config
+    @property
+    def sky_coord(self):
+        """SkyCoord"""
+        return SkyCoord(self.lon, self.lat, frame=self.frame)
 
 
 class IRFConfig(BaseConfig):
-    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
+    center: SkyCoordConfig = SkyCoordConfig()
+    psf: SimulatePSFConfig = CiaoToolsConfig().simulate_psf
+
+    @root_validator(allow_reuse=True)
+    def update_psf_config(cls, value):
+        """Update PSF ra/dec from IRF config"""
+        center = value["center"].sky_coord
+        value["psf"].ra = center.icrs.ra.deg
+        value["psf"].dec = center.icrs.dec.deg
+        return value
 
 
 class ROIConfig(BaseConfig):
@@ -149,8 +137,9 @@ class ROIConfig(BaseConfig):
     @property
     def region(self):
         """ROI region"""
-        center = SkyCoord(self.center.lon, self.center.lat, frame=self.center.frame)
-        region = RectangleSkyRegion(center=center, width=self.width, height=self.width)
+        region = RectangleSkyRegion(
+            center=self.center.sky_coord, width=self.width, height=self.width
+        )
         return region
 
     def to_ciao(self, wcs):
@@ -199,3 +188,13 @@ class ChandraConfig(BaseConfig):
             raise IOError(f"File exists already: {path}")
 
         path.write_text(self.to_yaml())
+
+    @root_validator()
+    def update_irf_config(cls, value):
+        """Update IRF config"""
+        config_psf = value["ciao"].simulate_psf
+
+        for config in value["irfs"].values():
+            config.psf = config_psf.copy(update=config.psf.dict())
+
+        return value

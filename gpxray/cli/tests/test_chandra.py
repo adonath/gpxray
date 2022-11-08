@@ -97,7 +97,6 @@ def test_cli_chandra_compute_exposure(path_config):
     assert path.exists()
 
 
-@pytest.mark.skip
 def test_cli_chandra_simulate_psf(path_config):
     args = [
         "chandra",
@@ -106,5 +105,5 @@ def test_cli_chandra_simulate_psf(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "data/1093/repro/acisf01093_repro_evt2_reprojected.fits"
+    path = path_config.parent / "my-config/1093/psf/psf-pks-0637.fits"
     assert path.exists()

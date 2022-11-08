@@ -146,11 +146,22 @@ class ChandraFileIndex:
 
     @property
     def filenames_psf(self):
-        """Filename counts"""
+        """Filenames psf"""
         filenames = {}
 
         for name in self.irf_names:
             filename = self.path_output / "psf" / "psf-{name}.fits"
+            filenames[name] = filename
+
+        return filenames
+
+    @property
+    def filenames_spectra(self):
+        """Filename specra"""
+        filenames = {}
+
+        for name in self.irf_names:
+            filename = self.path_output / "spectra" / "spectrum-{name}.fits"
             filenames[name] = filename
 
         return filenames
