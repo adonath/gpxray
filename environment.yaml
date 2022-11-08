@@ -23,6 +23,7 @@ dependencies:
   - sherpa=4.14
   - ciao-contrib
   - caldb_main
+  - marx
   - pip
   - gammapy
   - astropy
