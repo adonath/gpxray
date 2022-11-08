@@ -97,7 +97,7 @@ class ChandraFileIndex:
         return self.path_obs_id / "repro"
 
     @property
-    def paths_psf(self):
+    def paths_psf_marx(self):
         """PSF data path"""
         paths = {}
 
@@ -150,7 +150,7 @@ class ChandraFileIndex:
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output / "psf" / f"psf-{name}.fits"
+            filename = self.path_output / f"psf-{name}.fits"
             filenames[name] = filename
 
         return filenames

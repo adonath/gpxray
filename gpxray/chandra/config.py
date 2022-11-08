@@ -111,7 +111,7 @@ class CiaoToolsConfig(BaseConfig):
     )
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
         infile="{file_index.filename_repro_evt2_reprojected}",
-        outroot="{{file_index.filenames_psf[{irf_label}]}}",
+        outroot="{{file_index.paths_psf_marx[{irf_label}]}}",
         ra=np.nan,
         dec=np.nan,
         # spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",

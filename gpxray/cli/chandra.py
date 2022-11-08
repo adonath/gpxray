@@ -126,17 +126,10 @@ def cli_chandra_compute_exposure(obj):
         hdulist.writeto(filename, overwrite=obj.overwrite)
 
 
-# def copy_psf(path_input, path_output):
-#     """Copy PSF to output folder"""
-#     command = ["cp", f"{loc.filename_psf_marx}", f"{loc.path_jolideco_input}"]
-#     execute_command(command=command)
-
-#     command = [
-#         "mv",
-#         f"{loc.path_jolideco_input}/psf",
-#         f"{loc.path_jolideco_input}/psf.fits",
-#     ]
-#     execute_command(command=command)
+def copy_file(path_input, path_output):
+    """Copy file from path input to output"""
+    command = ["cp", f"{path_input}", f"{path_output}"]
+    execute_command(command=command)
 
 
 @click.command("simulate-psf", short_help="Simulate PSF FITS image")
@@ -154,8 +147,8 @@ def cli_chandra_simulate_psf(obj):
             run_ciao_tool(
                 "simulate_psf", config=irf_config, file_index=index, irf_label=name
             )
-
-            # copy_psf()
+            path_input = index.paths_psf[name] / "psf"
+            copy_file(path_input=path_input, path_output=filename_psf)
 
 
 @click.command("all", short_help="Run all commands")
