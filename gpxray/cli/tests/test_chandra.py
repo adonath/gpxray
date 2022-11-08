@@ -29,6 +29,8 @@ irfs:
         psf:
             pileup: true
             readout_streak: true
+            flux: 1e-6
+            monoenergy: 1.5
 """
 
 

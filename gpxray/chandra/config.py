@@ -115,6 +115,7 @@ class CiaoToolsConfig(BaseConfig):
         ra=np.nan,
         dec=np.nan,
         # spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
+        spectrumfile="",
     )
 
 
@@ -132,6 +133,10 @@ class SkyCoordConfig(BaseConfig):
 class PerSourceSimulatePSFConfig(BaseConfig):
     pileup: bool = False
     readout_streak: bool = False
+    monoenergy: float = 1.5
+    flux: float = 1e-5
+    minsize: int = 25
+    extended: bool = False
 
 
 class IRFConfig(BaseConfig):
