@@ -144,13 +144,14 @@ class SkyCoordConfig(BaseConfig):
         return SkyCoord(self.lon, self.lat, frame=self.frame)
 
 
-class PerSourceSimulatePSFConfig(BaseConfig):
-    pileup: bool = False
-    readout_streak: bool = False
-    monoenergy: float = 1.5
-    flux: float = 1e-5
-    minsize: int = 25
-    extended: bool = False
+class PerSourceSimulatePSFConfig(SimulatePSFConfig):
+    class Config:
+        fields = {
+            "pileup": {"include": True},
+            "readout_streak": {"include": True},
+            "extended": {"include": True},
+            "minsize": {"include": True},
+        }
 
 
 class IRFConfig(BaseConfig):
@@ -158,7 +159,9 @@ class IRFConfig(BaseConfig):
     radius: AngleType = Angle(3 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     energy_groups: int = 5
-    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
+    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig(
+        **CiaoToolsConfig().simulate_psf.dict()
+    )
 
     @property
     def region(self):
