@@ -63,11 +63,6 @@ class BaseConfig(BaseModel):
             Time: lambda v: f"{v.value}",
         }
 
-    @property
-    def required_names(self):
-        """Get required field names"""
-        return [field.name for field in self.__fields__.values() if field.required]
-
 
 def to_ciao_name(name):
     """Convert parameter name to ciao name"""
@@ -81,7 +76,7 @@ class CiaoBaseConfig(BaseConfig):
         """Convert to ciao config dict"""
         kwargs = self.dict()
 
-        for name in self.required_names:
+        for name in CIAO_TOOLS_DEFAULTS[self._tool_name]:
             ciao_name = to_ciao_name(name)
 
             value = kwargs[name]
@@ -104,7 +99,7 @@ def create_ciao_config(toolname, model_name):
     """Create config class"""
     par_info = runtool.parinfo[toolname]
 
-    parameters = {}
+    parameters = {"_tool_name": toolname}
 
     for par in par_info["req"]:
         default = CIAO_TOOLS_DEFAULTS[toolname][par.name]
@@ -168,9 +163,7 @@ class IRFConfig(BaseConfig):
     radius: AngleType = Angle(3 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     energy_groups: int = 5
-    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig(
-        **CiaoToolsConfig().simulate_psf.dict()
-    )
+    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
 
     @property
     def region(self):
