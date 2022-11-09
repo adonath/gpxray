@@ -254,6 +254,12 @@ class ChandraConfig(BaseConfig):
     irfs: Dict[str, IRFConfig] = {"pks-0637": IRFConfig()}
     ciao: CiaoToolsConfig = CiaoToolsConfig()
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        for config in self.irfs.values():
+            config.psf.binsize = self.roi.bin_size
+
     @classmethod
     def read(cls, path):
         """Reads from YAML file."""
