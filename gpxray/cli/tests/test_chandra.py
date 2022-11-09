@@ -9,8 +9,8 @@ CONFIG_STR = """
 name: my-analysis
 sub_name: my-config
 obs_ids:
-- 1093
-obs_id_ref: 1093
+- 62558
+obs_id_ref: 62558
 roi:
     center:
         frame: icrs
@@ -26,6 +26,7 @@ irfs:
             frame: icrs
             lon: "06h35m46.5079301472s"
             lat: "-75d16m16.816418256s"
+        radius: 30 arcsec
         psf:
             pileup: true
             readout_streak: true
@@ -56,7 +57,7 @@ def test_cli_chandra_download(path_config):
     args = ["chandra", f"--filename={path_config}", "download", "--exclude", "vvref"]
     run_cli(cli, args)
 
-    path = path_config.parent / "data/1093/"
+    path = path_config.parent / "data/62558/"
     assert path.exists()
 
 
@@ -68,7 +69,7 @@ def test_cli_chandra_reprocess(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "data/1093/repro"
+    path = path_config.parent / "data/62558/repro"
     assert path.exists()
 
 
@@ -80,7 +81,9 @@ def test_cli_chandra_reproject_events(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "data/1093/repro/acisf01093_repro_evt2_reprojected.fits"
+    path = (
+        path_config.parent / "data/62558/repro/acisf62558_repro_evt2_reprojected.fits"
+    )
     assert path.exists()
 
 
@@ -92,7 +95,7 @@ def test_cli_chandra_bin_events(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/1093/counts.fits"
+    path = path_config.parent / "my-config/62558/counts.fits"
     assert path.exists()
 
 
@@ -104,10 +107,38 @@ def test_cli_chandra_compute_exposure(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/1093/exposure.fits"
+    path = path_config.parent / "my-config/62558/exposure.fits"
     assert path.exists()
 
 
+def test_cli_chandra_extract_spectra(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "extract-spectra",
+    ]
+    run_cli(cli, args)
+
+    path = path_config.parent / "my-config/62558/spectrum-pks-0637/pks-0637.pi"
+    assert path.exists()
+
+
+def test_cli_chandra_fit_spectra(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "fit-spectra",
+    ]
+    run_cli(cli, args)
+
+    path = (
+        path_config.parent
+        / "my-config/62558/spectrum-pks-0637/source-flux-chart-pks-0637.dat"
+    )
+    assert path.exists()
+
+
+@pytest.mark.xfail
 def test_cli_chandra_simulate_psf(path_config):
     args = [
         "chandra",
@@ -116,5 +147,5 @@ def test_cli_chandra_simulate_psf(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/1093/psf/psf-pks-0637.fits"
+    path = path_config.parent / "my-config/62558/psf/psf-pks-0637.fits"
     assert path.exists()

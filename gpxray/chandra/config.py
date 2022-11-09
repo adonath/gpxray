@@ -224,8 +224,8 @@ class ROIConfig(BaseConfig):
 class ChandraConfig(BaseConfig):
     name: str = "my-analysis"
     sub_name: str = "my-config"
-    obs_ids: List[int] = [1093]
-    obs_id_ref: int = 1093
+    obs_ids: List[int] = [62558]
+    obs_id_ref: int = 62558
     roi: ROIConfig = ROIConfig()
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     irfs: Dict[str, IRFConfig] = {"pks-0637": IRFConfig()}
