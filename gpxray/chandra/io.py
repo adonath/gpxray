@@ -109,7 +109,7 @@ class ChandraFileIndex:
         return paths
 
     @property
-    def paths_spectra(self):
+    def paths_spectra_pha(self):
         """Spectrum data path"""
         paths = {}
 
@@ -169,11 +169,24 @@ class ChandraFileIndex:
 
     @property
     def filenames_spectra(self):
-        """Filename specra"""
+        """Filename spectra"""
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output / "spectra" / f"spectrum-{name}.fits"
+            filename = (
+                self.path_output / f"spectrum-{name}" / f"source-flux-chart-{name}.dat"
+            )
+            filenames[name] = filename
+
+        return filenames
+
+    @property
+    def filenames_spectra_png(self):
+        """Filename spectra"""
+        filenames = {}
+
+        for name in self.irf_names:
+            filename = self.path_output / f"spectrum-{name}" / f"spectrum-{name}.png"
             filenames[name] = filename
 
         return filenames

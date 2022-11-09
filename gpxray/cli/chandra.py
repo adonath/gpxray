@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from gpxray.chandra.utils import run_ciao_tool
+from gpxray.chandra.utils import run_ciao_tool, run_sherpa_spectral_fit
 
 log = logging.getLogger(__name__)
 
@@ -145,6 +145,23 @@ def cli_chandra_extract_spectra(obj):
             )
 
 
+@click.command("fit-spectra", short_help="Fit spectra")
+@click.pass_obj
+def cli_chandra_fit_spectra(obj):
+    """Fit spectra"""
+    for index in obj.file_indices:
+        for name, config_irf in obj.config.irfs.items():
+            filename_spectrum = index.filenames_spectra[name]
+
+            if filename_spectrum.exists() and not obj.overwrite:
+                log.info(f"Skipping fit spectrum, {filename_spectrum} already exists.")
+                continue
+
+            run_sherpa_spectral_fit(
+                config_irf=config_irf, file_index=index, irf_label=name
+            )
+
+
 def copy_file(path_input, path_output):
     """Copy file from path input to output"""
     command = ["cp", f"{path_input}", f"{path_output}"]
@@ -180,4 +197,5 @@ def cli_chandra_all(ctx):
     ctx.forward(cli_chandra_bin_events)
     ctx.forward(cli_chandra_compute_exposure)
     ctx.forward(cli_chandra_extract_spectra)
+    ctx.forward(cli_chandra_fit_spectra)
     ctx.forward(cli_chandra_simulate_psf)

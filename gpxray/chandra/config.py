@@ -157,6 +157,7 @@ class IRFConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     radius: AngleType = Angle(20 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
+    energy_groups: int = 10
     psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
 
     @property
