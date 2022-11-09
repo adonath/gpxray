@@ -20,6 +20,10 @@ log = logging.getLogger(__name__)
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
 CIAO_TOOLS_DEFAULTS = {
+    "dmcopy": {
+        "infile": "{file_index.filename_repro_evt2_reprojected}",
+        "outfile": "{file_index.filename_counts}",
+    },
     "simulate_psf": {
         "infile": "{file_index.filename_repro_evt2_reprojected}",
         "outroot": "{{file_index.paths_psf_marx[{irf_label}]}}",
@@ -27,7 +31,20 @@ CIAO_TOOLS_DEFAULTS = {
         "dec": np.nan,
         "spectrumfile": "{{file_index.filenames_spectra[{irf_label}]}}",
         "numiter": 10,
-    }
+    },
+    "chandra_repro": {
+        "indir": "{file_index.path_obs_id}",
+        "outdir": "{file_index.path_repro}",
+    },
+    "specextract": {
+        "infile": "{file_index.filename_repro_evt2_reprojected}",
+        "outroot": "{{file_index.paths_spectra_pha[{irf_label}]}}/{irf_label}",
+    },
+    "reproject_events": {
+        "infile": "{file_index.filename_repro_evt2}",
+        "outfile": "{file_index.filename_repro_evt2_reprojected}",
+        "match": "{file_index_ref.filename_repro_evt2}",
+    },
 }
 
 GammapyBaseConfig.Config.json_encoders[Angle] = lambda v: "None"
@@ -109,23 +126,11 @@ SpecExtractConfig = create_ciao_config("specextract", "SpecExtractConfig")
 
 
 class CiaoToolsConfig(BaseConfig):
-    dmcopy: DMCopyConfig = DMCopyConfig(
-        infile="{file_index.filename_repro_evt2_reprojected}",
-        outfile="{file_index.filename_counts}",
-    )
-    chandra_repro: ChandraReproConfig = ChandraReproConfig(
-        indir="{file_index.path_obs_id}", outdir="{file_index.path_repro}"
-    )
-    reproject_events: ReprojectEventsConfig = ReprojectEventsConfig(
-        infile="{file_index.filename_repro_evt2}",
-        outfile="{file_index.filename_repro_evt2_reprojected}",
-        match="{file_index_ref.filename_repro_evt2}",
-    )
+    dmcopy: DMCopyConfig = DMCopyConfig()
+    chandra_repro: ChandraReproConfig = ChandraReproConfig()
+    reproject_events: ReprojectEventsConfig = ReprojectEventsConfig()
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig()
-    specextract: SpecExtractConfig = SpecExtractConfig(
-        infile="{file_index.filename_repro_evt2_reprojected}",
-        outroot="{{file_index.paths_spectra_pha[{irf_label}]}}/{irf_label}",
-    )
+    specextract: SpecExtractConfig = SpecExtractConfig()
 
 
 class EnergyRangeConfig(BaseConfig):
