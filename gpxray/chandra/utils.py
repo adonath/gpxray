@@ -8,14 +8,14 @@ from sherpa_contrib.chart import save_chart_spectrum
 log = logging.getLogger(__name__)
 
 
-def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=None):
+def run_ciao_tool(
+    config, file_index, file_index_ref=None, irf_label=None, clobber=False
+):
     """Run ciao tool
 
     Parameters
     ----------
-    tool_name : str
-        Tool name to run
-    config : `~gpxtay.chandra.config.CiaoToolsConfig`
+    config : `~gpxtay.chandra.config.CiaoBaseConfig`
         Tools config
     file_index : `ChandraFileIndex`
         Chandra file index
@@ -23,17 +23,14 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=
         Reference file index
     """
     with runtool.new_pfiles_environment(ardlib=True):
-        tool = getattr(runtool, tool_name)
-        tool_config = getattr(config.ciao, tool_name)
+        tool = getattr(runtool, config._tool_name)
 
-        kwargs = tool_config.to_ciao(
+        kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
 
-        if tool_name == "dmcopy":
-            selection = f"[EVENTS][{config.roi.to_ciao(wcs=file_index.wcs)}]"
-            selection += f"[{config.energy_range.to_ciao()}]"
-            kwargs["infile"] += selection
+        if clobber in kwargs:
+            kwargs["clobber"] = clobber
 
         tool.punlearn()
         tool(**kwargs)

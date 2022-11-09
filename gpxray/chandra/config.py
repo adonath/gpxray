@@ -2,7 +2,6 @@ import json
 import logging
 from typing import Dict, List
 
-import numpy as np
 import yaml
 from astropy import units as u
 from astropy.coordinates import Angle, SkyCoord
@@ -27,8 +26,6 @@ CIAO_TOOLS_REQUIRED = {
     "simulate_psf": {
         "infile": "{file_index.filename_repro_evt2_reprojected}",
         "outroot": "{{file_index.paths_psf_marx[{irf_label}]}}",
-        "ra": np.nan,
-        "dec": np.nan,
         "spectrumfile": "{{file_index.filenames_spectra[{irf_label}]}}",
     },
     "chandra_repro": {
@@ -92,13 +89,21 @@ class CiaoBaseConfig(BaseConfig):
         return kwargs
 
 
-def create_ciao_config(toolname, model_name):
+def create_ciao_config(tool_name, model_name):
     """Create config class"""
-    par_info = runtool.parinfo[toolname]
+    par_opts = runtool.parinfo[tool_name]["opt"]
 
-    parameters = {"_tool_name": toolname}
+    if tool_name == "simulate_psf":
+        pars = [
+            par
+            for par in runtool.parinfo[tool_name]["req"]
+            if par.name in ["ra", "dec"]
+        ]
+        par_opts.extend(pars)
 
-    for par in par_info["opt"]:
+    parameters = {"_tool_name": tool_name}
+
+    for par in par_opts:
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
 
     model = create_model(model_name, __base__=CiaoBaseConfig, **parameters)
@@ -125,10 +130,6 @@ class EnergyRangeConfig(BaseConfig):
     min: EnergyType = 0.5 * u.keV
     max: EnergyType = 7 * u.keV
 
-    def to_ciao(self):
-        """dmcopy argument"""
-        return f"energy={self.min.to_value('eV')}:{self.max.to_value('eV')}"
-
 
 class SkyCoordConfig(BaseConfig):
     frame: FrameEnum = FrameEnum.icrs
@@ -151,12 +152,21 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         }
 
 
-class PerSourceSpectrumConfig(SpecExtractConfig):
+class PerSourceSpecExtractConfig(SpecExtractConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     radius: AngleType = Angle(3 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     energy_groups: int = 5
     energy_step: float = 0.01
+
+    class Config:
+        fields = {
+            "center": {"include": True},
+            "radius": {"include": True},
+            "energy_range": {"include": True},
+            "energy_groups": {"include": True},
+            "energy_step": {"include": True},
+        }
 
     @property
     def region(self):
@@ -164,54 +174,46 @@ class PerSourceSpectrumConfig(SpecExtractConfig):
         return CircleSkyRegion(center=self.center.sky_coord, radius=self.radius)
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
-        """Spectrum extract region to ciao string"""
-        kwargs = super().to_ciao(
+        """Spectrum extract region to ciao config"""
+        config = SpecExtractConfig()
+        kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
         region_pix = self.region.to_pixel(wcs=file_index.wcs)
         x, y = region_pix.center.x, region_pix.center.y
         kwargs["infile"] += f"[sky=circle({x},{y},{region_pix.radius})]"
+
+        energy = self.energy_range
+        kwargs[
+            "energy"
+        ] = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:{self.energy_step}"
         return kwargs
 
 
 class IRFConfig(BaseConfig):
-    spectrum: PerSourceSpectrumConfig = PerSourceSpectrumConfig()
+    spectrum: PerSourceSpecExtractConfig = PerSourceSpecExtractConfig()
     psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
 
-    @property
-    def psf_config_update(self):
-        """Simulate psf config update"""
-        config_psf = self.psf.dict()
-        center = self.center.sky_coord
-        config_psf["ra"] = center.icrs.ra.deg
-        config_psf["dec"] = center.icrs.dec.deg
-        return config_psf
-
-    @property
-    def spec_extract_config_update(self):
-        """Specextract config update"""
-        data = {}
-        energy = self.energy_range
-        data[
-            "energy"
-        ] = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:{self.energy_step}"
-        return data
-
-    @property
-    def ciao(self):
-        """Simulate PSF config"""
-        config = CiaoToolsConfig()
-        config.simulate_psf = config.simulate_psf.copy(update=self.psf_config_update)
-        config.specextract = config.specextract.copy(
-            update=self.spec_extract_config_update
-        )
-        return config
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        center = self.spectrum.center.sky_coord
+        self.psf.ra = center.icrs.ra.deg
+        self.psf.dec = center.icrs.dec.deg
 
 
-class ROIConfig(BaseConfig):
+class ROIConfig(DMCopyConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     width: AngleType = Angle("5 arcsec")
     bin_size: float = 1.0
+    energy_range: EnergyRangeConfig = EnergyRangeConfig()
+
+    class Config:
+        fields = {
+            "center": {"include": True},
+            "width": {"include": True},
+            "bin_size": {"include": True},
+            "energy_range": {"include": True},
+        }
 
     @property
     def region(self):
@@ -221,10 +223,26 @@ class ROIConfig(BaseConfig):
         )
         return region
 
-    def to_ciao(self, wcs):
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """dmcopy argument"""
-        bbox = self.region.to_pixel(wcs).bounding_box
-        return f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
+        config = DMCopyConfig()
+        kwargs = config.to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
+
+        bbox = self.region.to_pixel(wcs=file_index.wcs).bounding_box
+        spatial = (
+            f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, "
+            f"y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
+        )
+
+        energy = self.energy_range
+        spectral = f"energy={energy.min.to_value('eV')}:{energy.max.to_value('eV')}"
+
+        selection = f"[EVENTS][{spatial}]"
+        selection += f"[{spectral}]"
+        kwargs["infile"] += selection
+        return kwargs
 
 
 class ChandraConfig(BaseConfig):
@@ -233,7 +251,6 @@ class ChandraConfig(BaseConfig):
     obs_ids: List[int] = [62558]
     obs_id_ref: int = 62558
     roi: ROIConfig = ROIConfig()
-    energy_range: EnergyRangeConfig = EnergyRangeConfig()
     irfs: Dict[str, IRFConfig] = {"pks-0637": IRFConfig()}
     ciao: CiaoToolsConfig = CiaoToolsConfig()
 

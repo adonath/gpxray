@@ -56,7 +56,11 @@ def cli_chandra_reprocess(obj):
             log.info(f"Skipping reprocessing, {index.path_repro} already exists.")
             continue
 
-        run_ciao_tool("chandra_repro", config=obj.config, file_index=index)
+        run_ciao_tool(
+            config=obj.config.ciao.chandra_repro,
+            file_index=index,
+            clobber=obj.overwrite,
+        )
 
 
 @click.command("reproject-events", short_help="Reproject events to common WCS")
@@ -74,10 +78,10 @@ def cli_chandra_reproject_events(obj):
             continue
 
         run_ciao_tool(
-            "reproject_events",
-            config=obj.config,
+            config=obj.config.ciao.reproject_events,
             file_index=index,
             file_index_ref=index_ref,
+            clobber=obj.overwrite,
         )
 
 
@@ -91,9 +95,9 @@ def cli_chandra_bin_events(obj):
             continue
 
         run_ciao_tool(
-            "dmcopy",
-            config=obj.config,
+            config=obj.config.roi,
             file_index=index,
+            clobber=obj.overwrite,
         )
 
 
@@ -141,7 +145,10 @@ def cli_chandra_extract_spectra(obj):
                 continue
 
             run_ciao_tool(
-                "specextract", config=irf_config, file_index=index, irf_label=name
+                config=irf_config.spectrum,
+                file_index=index,
+                irf_label=name,
+                clobber=obj.overwrite,
             )
 
 
@@ -158,7 +165,7 @@ def cli_chandra_fit_spectra(obj):
                 continue
 
             run_sherpa_spectral_fit(
-                config_irf=config_irf, file_index=index, irf_label=name
+                config_irf=config_irf.spectrum, file_index=index, irf_label=name
             )
 
 
@@ -181,7 +188,10 @@ def cli_chandra_simulate_psf(obj):
                 continue
 
             run_ciao_tool(
-                "simulate_psf", config=irf_config, file_index=index, irf_label=name
+                config=irf_config.psf,
+                file_index=index,
+                irf_label=name,
+                clobber=obj.overwrite,
             )
             path_input = index.paths_psf[name] / "psf"
             copy_file(path_input=path_input, path_output=filename_psf)

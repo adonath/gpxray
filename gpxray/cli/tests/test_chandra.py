@@ -17,16 +17,17 @@ roi:
         lon: "06h35m46.5079301472s"
         lat: "-75d16m16.816418256s"
     width: 5.0 arcsec
-energy_range:
-    min: 0.5 keV
-    max: 7.0 keV
+    energy_range:
+        min: 0.5 keV
+        max: 7.0 keV
 irfs:
     pks-0637:
-        center:
-            frame: icrs
-            lon: "06h35m46.5079301472s"
-            lat: "-75d16m16.816418256s"
-        radius: 30 arcsec
+        spectrum:
+            center:
+                frame: icrs
+                lon: "06h35m46.5079301472s"
+                lat: "-75d16m16.816418256s"
+            radius: 30 arcsec
         psf:
             pileup: true
             readout_streak: true
