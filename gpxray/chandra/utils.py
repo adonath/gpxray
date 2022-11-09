@@ -35,10 +35,6 @@ def run_ciao_tool(tool_name, config, file_index, file_index_ref=None, irf_label=
             selection += f"[{config.energy_range.to_ciao()}]"
             kwargs["infile"] += selection
 
-        if tool_name == "specextract":
-            selection = config.to_ciao_spec_extract(wcs=file_index.wcs)
-            kwargs["infile"] += selection
-
         tool.punlearn()
         tool(**kwargs)
 

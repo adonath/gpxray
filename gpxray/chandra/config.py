@@ -151,24 +151,32 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         }
 
 
-class IRFConfig(BaseConfig):
+class PerSourceSpectrumConfig(SpecExtractConfig):
     center: SkyCoordConfig = SkyCoordConfig()
     radius: AngleType = Angle(3 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     energy_groups: int = 5
-    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
+    energy_step: float = 0.01
 
     @property
     def region(self):
         """Spectral extraction region"""
         return CircleSkyRegion(center=self.center.sky_coord, radius=self.radius)
 
-    def to_ciao_spec_extract(self, wcs):
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Spectrum extract region to ciao string"""
-        region_pix = self.region.to_pixel(wcs=wcs)
+        kwargs = super().to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
+        region_pix = self.region.to_pixel(wcs=file_index.wcs)
         x, y = region_pix.center.x, region_pix.center.y
-        value = f"[sky=circle({x},{y},{region_pix.radius})]"
-        return value
+        kwargs["infile"] += f"[sky=circle({x},{y},{region_pix.radius})]"
+        return kwargs
+
+
+class IRFConfig(BaseConfig):
+    spectrum: PerSourceSpectrumConfig = PerSourceSpectrumConfig()
+    psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
 
     @property
     def psf_config_update(self):
@@ -186,7 +194,7 @@ class IRFConfig(BaseConfig):
         energy = self.energy_range
         data[
             "energy"
-        ] = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:0.01"
+        ] = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:{self.energy_step}"
         return data
 
     @property
