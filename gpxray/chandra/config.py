@@ -115,12 +115,12 @@ class CiaoToolsConfig(BaseConfig):
         outroot="{{file_index.paths_psf_marx[{irf_label}]}}",
         ra=np.nan,
         dec=np.nan,
-        # spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
-        spectrumfile="",
+        spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
+        numiter=10,
     )
     specextract: SpecExtractConfig = SpecExtractConfig(
         infile="{file_index.filename_repro_evt2_reprojected}",
-        outroot="{{file_index.paths_spectra[{irf_label}]}}/{irf_label}",
+        outroot="{{file_index.paths_spectra_pha[{irf_label}]}}/{irf_label}",
     )
 
 
@@ -155,9 +155,9 @@ class PerSourceSimulatePSFConfig(BaseConfig):
 
 class IRFConfig(BaseConfig):
     center: SkyCoordConfig = SkyCoordConfig()
-    radius: AngleType = Angle(20 * u.arcsec)
+    radius: AngleType = Angle(3 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
-    energy_groups: int = 10
+    energy_groups: int = 5
     psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
 
     @property

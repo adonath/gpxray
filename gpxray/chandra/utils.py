@@ -62,7 +62,10 @@ def run_sherpa_spectral_fit(config_irf, file_index, irf_label):
 
     sau.fit()
     sau.set_analysis(1, "energy", "rate", factor=1)
-    sau.plot_source()
+    sau.plot_data()
+    sau.plot_source(overplot=True)
+    sau.plot_model(overplot=True)
+    plt.xlim(0.3 * e_min, 3 * e_max)
 
     plt.xscale("log")
     plt.yscale("log")
