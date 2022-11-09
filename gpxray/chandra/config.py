@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
-CIAO_TOOLS_DEFAULTS = {
+CIAO_TOOLS_REQUIRED = {
     "dmcopy": {
         "infile": "{file_index.filename_repro_evt2_reprojected}",
         "outfile": "{file_index.filename_counts}",
@@ -30,7 +30,6 @@ CIAO_TOOLS_DEFAULTS = {
         "ra": np.nan,
         "dec": np.nan,
         "spectrumfile": "{{file_index.filenames_spectra[{irf_label}]}}",
-        "numiter": 10,
     },
     "chandra_repro": {
         "indir": "{file_index.path_obs_id}",
@@ -76,10 +75,8 @@ class CiaoBaseConfig(BaseConfig):
         """Convert to ciao config dict"""
         kwargs = self.dict()
 
-        for name in CIAO_TOOLS_DEFAULTS[self._tool_name]:
+        for name, value in CIAO_TOOLS_REQUIRED[self._tool_name].items():
             ciao_name = to_ciao_name(name)
-
-            value = kwargs[name]
 
             if not isinstance(value, str):
                 continue
@@ -100,10 +97,6 @@ def create_ciao_config(toolname, model_name):
     par_info = runtool.parinfo[toolname]
 
     parameters = {"_tool_name": toolname}
-
-    for par in par_info["req"]:
-        default = CIAO_TOOLS_DEFAULTS[toolname][par.name]
-        parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], default)
 
     for par in par_info["opt"]:
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
