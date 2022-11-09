@@ -19,6 +19,16 @@ log = logging.getLogger(__name__)
 
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
+CIAO_TOOLS_DEFAULTS = {
+    "simulate_psf": {
+        "infile": "{file_index.filename_repro_evt2_reprojected}",
+        "outroot": "{{file_index.paths_psf_marx[{irf_label}]}}",
+        "ra": np.nan,
+        "dec": np.nan,
+        "spectrumfile": "{{file_index.filenames_spectra[{irf_label}]}}",
+        "numiter": 10,
+    }
+}
 
 GammapyBaseConfig.Config.json_encoders[Angle] = lambda v: "None"
 
@@ -80,7 +90,8 @@ def create_ciao_config(toolname, model_name):
     parameters = {}
 
     for par in par_info["req"]:
-        parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], Ellipsis)
+        default = CIAO_TOOLS_DEFAULTS[toolname][par.name]
+        parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], default)
 
     for par in par_info["opt"]:
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
@@ -110,14 +121,7 @@ class CiaoToolsConfig(BaseConfig):
         outfile="{file_index.filename_repro_evt2_reprojected}",
         match="{file_index_ref.filename_repro_evt2}",
     )
-    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(
-        infile="{file_index.filename_repro_evt2_reprojected}",
-        outroot="{{file_index.paths_psf_marx[{irf_label}]}}",
-        ra=np.nan,
-        dec=np.nan,
-        spectrumfile="{{file_index.filenames_spectra[{irf_label}]}}",
-        numiter=10,
-    )
+    simulate_psf: SimulatePSFConfig = SimulatePSFConfig()
     specextract: SpecExtractConfig = SpecExtractConfig(
         infile="{file_index.filename_repro_evt2_reprojected}",
         outroot="{{file_index.paths_spectra_pha[{irf_label}]}}/{irf_label}",
