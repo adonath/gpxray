@@ -59,7 +59,7 @@ def cli_chandra_reprocess(obj):
         run_ciao_tool(
             config=obj.config.ciao.chandra_repro,
             file_index=index,
-            clobber=obj.overwrite,
+            overwrite=obj.overwrite,
         )
 
 
@@ -81,7 +81,7 @@ def cli_chandra_reproject_events(obj):
             config=obj.config.ciao.reproject_events,
             file_index=index,
             file_index_ref=index_ref,
-            clobber=obj.overwrite,
+            overwrite=obj.overwrite,
         )
 
 
@@ -97,7 +97,7 @@ def cli_chandra_bin_events(obj):
         run_ciao_tool(
             config=obj.config.roi,
             file_index=index,
-            clobber=obj.overwrite,
+            overwrite=obj.overwrite,
         )
 
 
@@ -148,7 +148,7 @@ def cli_chandra_extract_spectra(obj):
                 config=irf_config.spectrum,
                 file_index=index,
                 irf_label=name,
-                clobber=obj.overwrite,
+                overwrite=obj.overwrite,
             )
 
 
@@ -191,7 +191,7 @@ def cli_chandra_simulate_psf(obj):
                 config=irf_config.psf,
                 file_index=index,
                 irf_label=name,
-                clobber=obj.overwrite,
+                overwrite=obj.overwrite,
             )
             path_input = index.paths_psf[name] / "psf"
             copy_file(path_input=path_input, path_output=filename_psf)

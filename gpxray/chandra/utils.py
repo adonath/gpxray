@@ -1,6 +1,5 @@
 import logging
 
-import matplotlib.pyplot as plt
 import sherpa.astro.ui as sau
 from ciao_contrib import runtool
 from sherpa_contrib.chart import save_chart_spectrum
@@ -9,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 def run_ciao_tool(
-    config, file_index, file_index_ref=None, irf_label=None, clobber=False
+    config, file_index, file_index_ref=None, irf_label=None, overwrite=False
 ):
     """Run ciao tool
 
@@ -21,6 +20,8 @@ def run_ciao_tool(
         Chandra file index
     file_index_ref :  `ChandraFileIndex`
         Reference file index
+    overwrite ; bool
+        Overwrite output files
     """
     with runtool.new_pfiles_environment(ardlib=True):
         tool = getattr(runtool, config._tool_name)
@@ -29,8 +30,8 @@ def run_ciao_tool(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
 
-        if clobber in kwargs:
-            kwargs["clobber"] = clobber
+        if "clobber" in kwargs:
+            kwargs["clobber"] = overwrite
 
         tool.punlearn()
         tool(**kwargs)
@@ -38,7 +39,6 @@ def run_ciao_tool(
 
 def run_sherpa_spectral_fit(config_irf, file_index, irf_label):
     """Run sherpa spectral fit"""
-
     filename_pha = file_index.paths_spectra_pha[irf_label] / f"{irf_label}.pi"
     sau.load_data(str(filename_pha))
 
@@ -55,17 +55,6 @@ def run_sherpa_spectral_fit(config_irf, file_index, irf_label):
 
     sau.fit()
     sau.set_analysis(1, "energy", "rate", factor=1)
-    sau.plot_data()
-    sau.plot_source(overplot=True)
-    sau.plot_model(overplot=True)
-    plt.xlim(0.3 * e_min, 3 * e_max)
-
-    plt.xscale("log")
-    plt.yscale("log")
-
-    filename = file_index.filenames_spectra_png[irf_label]
-    log.info(f"Writing {filename}")
-    plt.savefig(filename)
 
     filename = file_index.filenames_spectra[irf_label]
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max)
