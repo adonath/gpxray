@@ -8,7 +8,7 @@ from astropy.coordinates import Angle, SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
 from ciao_contrib import runtool
-from gammapy.analysis.config import AngleType, EnergyType, FrameEnum, GammapyBaseConfig
+from gammapy.analysis.config import AngleType, EnergyType, FrameEnum
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic import BaseModel, create_model
 from regions import CircleSkyRegion, RectangleSkyRegion
@@ -42,8 +42,6 @@ CIAO_TOOLS_REQUIRED = {
         "match": "{file_index_ref.filename_repro_evt2}",
     },
 }
-
-GammapyBaseConfig.Config.json_encoders[Angle] = lambda v: "None"
 
 
 class BaseConfig(BaseModel):
@@ -184,9 +182,8 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
         kwargs["infile"] += f"[sky=circle({x},{y},{region_pix.radius})]"
 
         energy = self.energy_range
-        kwargs[
-            "energy"
-        ] = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:{self.energy_step}"
+        selection = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:{self.energy_step}"
+        kwargs["energy"] = selection
         return kwargs
 
 
