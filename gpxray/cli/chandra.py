@@ -36,29 +36,34 @@ def cli_chandra_init_config(obj):
 @click.pass_obj
 def cli_chandra_download(obj, exclude):
     """Download data"""
-    for index in obj.file_indices:
-        if index.path_obs_id.exists() and not obj.overwrite:
-            log.info(f"Skipping download, {index.path_obs_id} already exists.")
+    for file_index in obj.file_indices:
+        if file_index.path_obs_id.exists() and not obj.overwrite:
+            log.info(f"Skipping download, {file_index.path_obs_id} already exists.")
             continue
 
-        index.path_data.mkdir(exist_ok=True)
+        file_index.path_data.mkdir(exist_ok=True)
 
-        command = ["download_chandra_obsid", f"{index.obs_id}", "--exclude", exclude]
-        execute_command(command=command, cwd=f"{index.path_data}")
+        command = [
+            "download_chandra_obsid",
+            f"{file_index.obs_id}",
+            "--exclude",
+            exclude,
+        ]
+        execute_command(command=command, cwd=f"{file_index.path_data}")
 
 
 @click.command("reprocess", short_help="Reprocess chandra observation data")
 @click.pass_obj
 def cli_chandra_reprocess(obj):
     """Reprocess data"""
-    for index in obj.file_indices:
-        if index.path_repro.exists() and not obj.overwrite:
-            log.info(f"Skipping reprocessing, {index.path_repro} already exists.")
+    for file_index in obj.file_indices:
+        if file_index.path_repro.exists() and not obj.overwrite:
+            log.info(f"Skipping reprocessing, {file_index.path_repro} already exists.")
             continue
 
         run_ciao_tool(
             config=obj.config.ciao.chandra_repro,
-            file_index=index,
+            file_index=file_index,
             overwrite=obj.overwrite,
         )
 
@@ -67,20 +72,20 @@ def cli_chandra_reprocess(obj):
 @click.pass_obj
 def cli_chandra_reproject_events(obj):
     """Reproject events"""
-    index_ref = obj.file_index_ref
+    file_index_ref = obj.file_index_ref
 
-    for index in obj.file_indices:
-        if index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
+    for file_index in obj.file_indices:
+        if file_index.filename_repro_evt2_reprojected.exists() and not obj.overwrite:
             log.info(
-                f"Skipping reproject events, {index.filename_repro_evt2_reprojected} "
+                f"Skipping reproject events, {file_index.filename_repro_evt2_reprojected} "
                 "already exists."
             )
             continue
 
         run_ciao_tool(
             config=obj.config.ciao.reproject_events,
-            file_index=index,
-            file_index_ref=index_ref,
+            file_index=file_index,
+            file_index_ref=file_index_ref,
             overwrite=obj.overwrite,
         )
 
@@ -89,14 +94,16 @@ def cli_chandra_reproject_events(obj):
 @click.pass_obj
 def cli_chandra_bin_events(obj):
     """Bin events"""
-    for index in obj.file_indices:
-        if index.filename_counts.exists() and not obj.overwrite:
-            log.info(f"Skipping bin events, {index.filename_counts} " "already exists.")
+    for file_index in obj.file_indices:
+        if file_index.filename_counts.exists() and not obj.overwrite:
+            log.info(
+                f"Skipping bin events, {file_index.filename_counts} " "already exists."
+            )
             continue
 
         run_ciao_tool(
             config=obj.config.roi,
-            file_index=index,
+            file_index=file_index,
             overwrite=obj.overwrite,
         )
 
@@ -108,23 +115,23 @@ def cli_chandra_compute_exposure(obj):
     # TODO: take into account spatial dependence and maybe compute absolute exposure...
     exposure_ref = obj.file_index_ref.index_table.meta["EXPOSURE"]
 
-    for index in obj.file_indices:
-        if index.filename_exposure.exists() and not obj.overwrite:
+    for file_index in obj.file_indices:
+        if file_index.filename_exposure.exists() and not obj.overwrite:
             log.info(
-                f"Skipping compute exposure, {index.filename_exposure} "
+                f"Skipping compute exposure, {file_index.filename_exposure} "
                 "already exists."
             )
             continue
 
-        value = index.index_table.meta["EXPOSURE"]
-        header = fits.getheader(index.filename_counts)
+        value = file_index.index_table.meta["EXPOSURE"]
+        header = fits.getheader(file_index.filename_counts)
         shape = header["NAXIS2"], header["NAXIS1"]
         data = value * np.ones(shape) / exposure_ref
         hdu = fits.PrimaryHDU(data=data, header=WCS(header).to_header())
 
         hdulist = fits.HDUList([hdu])
 
-        filename = index.filename_exposure
+        filename = file_index.filename_exposure
         log.info(f"Writing {filename}")
 
         hdulist.writeto(filename, overwrite=obj.overwrite)
@@ -134,9 +141,9 @@ def cli_chandra_compute_exposure(obj):
 @click.pass_obj
 def cli_chandra_extract_spectra(obj):
     """Extract spectra"""
-    for index in obj.file_indices:
-        for name, irf_config in obj.config.irfs.items():
-            filename_spectrum = index.filenames_spectra[name]
+    for file_index in obj.file_indices:
+        for irf_label, irf_config in obj.config.irfs.items():
+            filename_spectrum = file_index.filenames_spectra[irf_label]
 
             if filename_spectrum.exists() and not obj.overwrite:
                 log.info(
@@ -146,8 +153,8 @@ def cli_chandra_extract_spectra(obj):
 
             run_ciao_tool(
                 config=irf_config.spectrum,
-                file_index=index,
-                irf_label=name,
+                file_index=file_index,
+                irf_label=irf_label,
                 overwrite=obj.overwrite,
             )
 
@@ -156,18 +163,18 @@ def cli_chandra_extract_spectra(obj):
 @click.pass_obj
 def cli_chandra_fit_spectra(obj):
     """Fit spectra"""
-    for index in obj.file_indices:
-        for name, config_irf in obj.config.irfs.items():
-            filename_spectrum = index.filenames_spectra[name]
+    for file_index in obj.file_indices:
+        for irf_label, config_irf in obj.config.irfs.items():
+            filename_spectrum = file_index.filenames_spectra[irf_label]
 
             if filename_spectrum.exists() and not obj.overwrite:
                 log.info(f"Skipping fit spectrum, {filename_spectrum} already exists.")
                 continue
 
             run_sherpa_spectral_fit(
-                config_irf=config_irf.spectrum,
-                file_index=index,
-                irf_label=name,
+                config=config_irf.spectrum,
+                file_index=file_index,
+                irf_label=irf_label,
                 overwrite=obj.overwrite,
             )
 
@@ -182,9 +189,9 @@ def copy_file(path_input, path_output):
 @click.pass_obj
 def cli_chandra_simulate_psf(obj):
     """Simulate psf"""
-    for index in obj.file_indices:
-        for name, irf_config in obj.config.irfs.items():
-            filename_psf = index.filenames_psf[name]
+    for file_index in obj.file_indices:
+        for irf_label, irf_config in obj.config.irfs.items():
+            filename_psf = file_index.filenames_psf[irf_label]
 
             if filename_psf.exists() and not obj.overwrite:
                 log.info(f"Skipping simulate-psf, {filename_psf} " "already exists.")
@@ -192,11 +199,11 @@ def cli_chandra_simulate_psf(obj):
 
             run_ciao_tool(
                 config=irf_config.psf,
-                file_index=index,
-                irf_label=name,
+                file_index=file_index,
+                irf_label=irf_label,
                 overwrite=obj.overwrite,
             )
-            path_input = index.paths_psf[name] / "psf"
+            path_input = file_index.paths_psf[irf_label] / "psf"
             copy_file(path_input=path_input, path_output=filename_psf)
 
 
