@@ -14,12 +14,14 @@ def run_ciao_tool(
 
     Parameters
     ----------
-    config : `~gpxtay.chandra.config.CiaoBaseConfig`
+    config : `~gpxray.chandra.config.CiaoBaseConfig`
         Tools config
     file_index : `ChandraFileIndex`
         Chandra file index
     file_index_ref :  `ChandraFileIndex`
         Reference file index
+    irf_label : str
+        IRF label
     overwrite ; bool
         Overwrite output files
     """
@@ -37,15 +39,29 @@ def run_ciao_tool(
         tool(**kwargs)
 
 
-def run_sherpa_spectral_fit(config_irf, file_index, irf_label):
-    """Run sherpa spectral fit"""
+def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
+    """Run sherpa spectral fit
+
+    Parameters
+    ----------
+    config : `~gpxray.chandra.config.PerSourceSpecExtractConfig`
+        Tools config
+    file_index : `ChandraFileIndex`
+        Chandra file index
+    file_index_ref :  `ChandraFileIndex`
+        Reference file index
+    irf_label : str
+        IRF label
+    overwrite ; bool
+        Overwrite output files
+    """
     filename_pha = file_index.paths_spectra_pha[irf_label] / f"{irf_label}.pi"
     sau.load_data(str(filename_pha))
 
-    sau.group_counts(config_irf.energy_groups)
+    sau.group_counts(config.energy_groups)
 
-    e_min = config_irf.energy_range.min.to_value("keV")
-    e_max = config_irf.energy_range.max.to_value("keV")
+    e_min = config.energy_range.min.to_value("keV")
+    e_max = config.energy_range.max.to_value("keV")
     sau.notice(e_min, e_max)
 
     sau.set_source(sau.xsphabs.absorption * sau.powerlaw.pwl)
@@ -57,4 +73,5 @@ def run_sherpa_spectral_fit(config_irf, file_index, irf_label):
     sau.set_analysis(1, "energy", "rate", factor=1)
 
     filename = file_index.filenames_spectra[irf_label]
-    save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max)
+
+    save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)

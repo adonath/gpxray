@@ -165,7 +165,10 @@ def cli_chandra_fit_spectra(obj):
                 continue
 
             run_sherpa_spectral_fit(
-                config_irf=config_irf.spectrum, file_index=index, irf_label=name
+                config_irf=config_irf.spectrum,
+                file_index=index,
+                irf_label=name,
+                overwrite=obj.overwrite,
             )
 
 
