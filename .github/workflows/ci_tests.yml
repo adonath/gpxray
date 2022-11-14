@@ -20,7 +20,7 @@ jobs:
     name: CI tests
     runs-on: ubuntu-latest
     env:
-      MARX_ROOT: ""
+      MARX_ROOT: /usr/share/miniconda3/envs/gpxray-dev
       CACHE_NUMBER: 0
     steps:
     - name: Checkout code
@@ -47,4 +47,4 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
     - name: Run tests
       shell: bash -l {0}
-      run: pytest ./tests
+      run: pytest
