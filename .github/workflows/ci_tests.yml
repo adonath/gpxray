@@ -47,4 +47,6 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
     - name: Run tests
       shell: bash -l {0}
-      run: pytest
+      run: |
+        python -m pip install -e .
+        pytest
