@@ -32,7 +32,7 @@ jobs:
       with:
         miniforge-variant: Mambaforge
         miniforge-version: latest
-        activate-environment: anaconda-client-env
+        activate-environment: gpxray-dev
         use-mamba: true
     - name: Cache conda environment
       uses: actions/cache@v2
