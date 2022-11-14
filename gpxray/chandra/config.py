@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, List
+from typing import ClassVar, Dict, List
 
 import yaml
 from astropy import units as u
@@ -66,6 +66,8 @@ def to_ciao_name(name):
 class CiaoBaseConfig(BaseConfig):
     """Ciao tools base config"""
 
+    _tool_name: ClassVar
+
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Convert to ciao config dict"""
         kwargs = self.dict()
@@ -99,12 +101,13 @@ def create_ciao_config(tool_name, model_name):
         ]
         par_opts.extend(pars)
 
-    parameters = {"_tool_name": tool_name}
+    parameters = {}
 
     for par in par_opts:
         parameters[par.name] = (CIAO_TOOLS_TYPES[par.type], par.default)
 
     model = create_model(model_name, __base__=CiaoBaseConfig, **parameters)
+    model._tool_name = tool_name
 
     return model
 
@@ -148,6 +151,13 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "extended": {"include": True},
             "minsize": {"include": True},
         }
+
+    def dict(self, **kwargs):
+        """Dict"""
+        data = super().dict(**kwargs)
+        data["ra"] = self.ra
+        data["dec"] = self.dec
+        return data
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Spectrum extract region to ciao config"""
