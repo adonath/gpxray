@@ -149,6 +149,16 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "minsize": {"include": True},
         }
 
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
+        """Spectrum extract region to ciao config"""
+        config = SimulatePSFConfig()
+        kwargs = config.to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
+
+        kwargs.update(self.dict())
+        return kwargs
+
 
 class PerSourceSpecExtractConfig(SpecExtractConfig):
     center: SkyCoordConfig = SkyCoordConfig()
