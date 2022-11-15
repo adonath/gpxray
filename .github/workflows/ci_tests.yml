@@ -20,7 +20,7 @@ jobs:
     name: CI tests
     runs-on: ubuntu-latest
     env:
-      MARX_ROOT: /usr/share/miniconda3/envs/gpxray-dev
+      MARX_ROOT: /usr/share/miniconda3/envs/gpxray-devPRE 
       CACHE_NUMBER: 0
     steps:
     - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
       with:
         path: ${{ env.CONDA }}/envs
         key:
-          conda-${{ runner.os }}--${{ runner.arch }}---${{hashFiles('environment.yaml') }}-${{ env.CACHE_NUMBER }}
+          conda-${{ runner.os }}--${{ runner.arch }}--${{hashFiles('environment.yaml') }}-${{ env.CACHE_NUMBER }}
       id: cache
     - name: Update environment
       run:
@@ -49,4 +49,4 @@ jobs:
       shell: bash -l {0}
       run: |
         python -m pip install -e .
-        pytest
+        MARX_ROOT=/usr/share/miniconda3/envs/gpxray-dev pytest gpxray

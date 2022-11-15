@@ -14,7 +14,6 @@ channels:
 
 variables:
   PYTHONNOUSERSITE: "1"
-  MARX_ROOT: $CONDA_PREFIX
   CONDA_SUBDIR: osx-64
 
 dependencies:
