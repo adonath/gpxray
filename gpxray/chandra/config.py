@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from typing import ClassVar, Dict, List
 
 import yaml
@@ -14,6 +15,9 @@ from pydantic import BaseModel, create_model
 from regions import CircleSkyRegion, RectangleSkyRegion
 
 log = logging.getLogger(__name__)
+
+
+MARX_ROOT = os.environ.get("CONDA_PREFIX", "${MARX_ROOT}")
 
 
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
@@ -123,7 +127,7 @@ class CiaoToolsConfig(BaseConfig):
     dmcopy: DMCopyConfig = DMCopyConfig()
     chandra_repro: ChandraReproConfig = ChandraReproConfig()
     reproject_events: ReprojectEventsConfig = ReprojectEventsConfig()
-    simulate_psf: SimulatePSFConfig = SimulatePSFConfig()
+    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(marx_root=MARX_ROOT)
     specextract: SpecExtractConfig = SpecExtractConfig()
 
 
@@ -161,7 +165,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Spectrum extract region to ciao config"""
-        config = SimulatePSFConfig()
+        config = CiaoToolsConfig().simulate_psf.copy()
         kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
@@ -193,7 +197,7 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Spectrum extract region to ciao config"""
-        config = SpecExtractConfig()
+        config = CiaoToolsConfig().specextract.copy()
         kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
@@ -242,7 +246,7 @@ class ROIConfig(DMCopyConfig):
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """dmcopy argument"""
-        config = DMCopyConfig()
+        config = CiaoToolsConfig().dmcopy.copy()
         kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
