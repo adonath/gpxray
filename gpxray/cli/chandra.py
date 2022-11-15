@@ -123,6 +123,12 @@ def cli_chandra_compute_exposure(obj):
             )
             continue
 
+        run_ciao_tool(
+            config=obj.config.ciao.asphist,
+            file_index=file_index,
+            overwrite=obj.overwrite,
+        )
+
         value = file_index.index_table.meta["EXPOSURE"]
         header = fits.getheader(file_index.filename_counts)
         shape = header["NAXIS2"], header["NAXIS1"]
