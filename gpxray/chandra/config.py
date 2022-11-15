@@ -50,6 +50,12 @@ CIAO_TOOLS_REQUIRED = {
         "outfile": "{file_index.filename_repro_asp_hist}",
         "evtfile": "{file_index.filename_repro_evt2_reprojected}",
     },
+    "mkinstmap": {
+        "outfile": "{file_index.filename_repro_inst_map}",
+        "spectrumfile": "{{file_index.filenames_spectra[{irf_label}]}}",
+        "obsfile": "{file_index.filename_repro_asol1}",
+        "detsubsys": "ACIS-1",
+    },
 }
 
 
@@ -127,6 +133,7 @@ ReprojectEventsConfig = create_ciao_config("reproject_events", "ReprojectEventsC
 SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 SpecExtractConfig = create_ciao_config("specextract", "SpecExtractConfig")
 AspHistConfig = create_ciao_config("asphist", "AspHistConfig")
+MkInstMapConfig = create_ciao_config("mkinstmap", "MkInstMapConfig")
 
 
 class CiaoToolsConfig(BaseConfig):
@@ -136,6 +143,7 @@ class CiaoToolsConfig(BaseConfig):
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(marx_root=MARX_ROOT)
     specextract: SpecExtractConfig = SpecExtractConfig()
     asphist: AspHistConfig = AspHistConfig()
+    mkinstmap: MkInstMapConfig = MkInstMapConfig()
 
 
 class EnergyRangeConfig(BaseConfig):
@@ -152,6 +160,50 @@ class SkyCoordConfig(BaseConfig):
     def sky_coord(self):
         """SkyCoord"""
         return SkyCoord(self.lon, self.lat, frame=self.frame)
+
+
+class ROIConfig(DMCopyConfig):
+    center: SkyCoordConfig = SkyCoordConfig()
+    width: AngleType = Angle("5 arcsec")
+    bin_size: float = 1.0
+    energy_range: EnergyRangeConfig = EnergyRangeConfig()
+
+    class Config:
+        fields = {
+            "center": {"include": True},
+            "width": {"include": True},
+            "bin_size": {"include": True},
+            "energy_range": {"include": True},
+        }
+
+    @property
+    def region(self):
+        """ROI region"""
+        region = RectangleSkyRegion(
+            center=self.center.sky_coord, width=self.width, height=self.width
+        )
+        return region
+
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
+        """dmcopy argument"""
+        config = CiaoToolsConfig().dmcopy.copy()
+        kwargs = config.to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
+
+        bbox = self.region.to_pixel(wcs=file_index.wcs).bounding_box
+        spatial = (
+            f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, "
+            f"y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
+        )
+
+        energy = self.energy_range
+        spectral = f"energy={energy.min.to_value('eV')}:{energy.max.to_value('eV')}"
+
+        selection = f"[EVENTS][{spatial}]"
+        selection += f"[{spectral}]"
+        kwargs["infile"] += selection
+        return kwargs
 
 
 class PerSourceSimulatePSFConfig(SimulatePSFConfig):
@@ -218,59 +270,44 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
         return kwargs
 
 
+class PerSourceMkInstMapConfig(MkInstMapConfig):
+    roi = ROIConfig()
+
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
+        """To ciao config"""
+        config = CiaoToolsConfig().mkinstmap
+
+        kwargs = config.to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
+
+        bbox = self.roi.region.to_pixel(wcs=file_index.wcs).bounding_box
+
+        nx = int(bbox.shape[1] / self.roi.bin_size)
+        ny = int(bbox.shape[0] / self.roi.bin_size)
+
+        kwargs[
+            "pixelgrid"
+        ] = f"{bbox.ixmin}:{bbox.ixmax}:#{nx},{bbox.iymin}:{bbox.iymax}:#{ny}"
+        return kwargs
+
+
 class IRFConfig(BaseConfig):
     spectrum: PerSourceSpecExtractConfig = PerSourceSpecExtractConfig()
     psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
+    aeff: PerSourceMkInstMapConfig = PerSourceMkInstMapConfig()
+
+    class Config:
+        fields = {
+            "spectrum": {"include": True},
+            "psf": {"include": True},
+        }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         center = self.spectrum.center.sky_coord
         self.psf.ra = center.icrs.ra.deg
         self.psf.dec = center.icrs.dec.deg
-
-
-class ROIConfig(DMCopyConfig):
-    center: SkyCoordConfig = SkyCoordConfig()
-    width: AngleType = Angle("5 arcsec")
-    bin_size: float = 1.0
-    energy_range: EnergyRangeConfig = EnergyRangeConfig()
-
-    class Config:
-        fields = {
-            "center": {"include": True},
-            "width": {"include": True},
-            "bin_size": {"include": True},
-            "energy_range": {"include": True},
-        }
-
-    @property
-    def region(self):
-        """ROI region"""
-        region = RectangleSkyRegion(
-            center=self.center.sky_coord, width=self.width, height=self.width
-        )
-        return region
-
-    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
-        """dmcopy argument"""
-        config = CiaoToolsConfig().dmcopy.copy()
-        kwargs = config.to_ciao(
-            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
-        )
-
-        bbox = self.region.to_pixel(wcs=file_index.wcs).bounding_box
-        spatial = (
-            f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, "
-            f"y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
-        )
-
-        energy = self.energy_range
-        spectral = f"energy={energy.min.to_value('eV')}:{energy.max.to_value('eV')}"
-
-        selection = f"[EVENTS][{spatial}]"
-        selection += f"[{spectral}]"
-        kwargs["infile"] += selection
-        return kwargs
 
 
 class ChandraConfig(BaseConfig):

@@ -129,6 +129,14 @@ def cli_chandra_compute_exposure(obj):
             overwrite=obj.overwrite,
         )
 
+        irf_label = list(obj.config.irfs)[0]
+        run_ciao_tool(
+            config=obj.config.irfs[irf_label].aeff,
+            file_index=file_index,
+            overwrite=obj.overwrite,
+            irf_label=irf_label,
+        )
+
         value = file_index.index_table.meta["EXPOSURE"]
         header = fits.getheader(file_index.filename_counts)
         shape = header["NAXIS2"], header["NAXIS1"]
@@ -209,7 +217,7 @@ def cli_chandra_simulate_psf(obj):
                 irf_label=irf_label,
                 overwrite=obj.overwrite,
             )
-            path_input = file_index.paths_psf[irf_label] / "psf"
+            path_input = file_index.paths_psf_marx[irf_label] / "psf"
             copy_file(path_input=path_input, path_output=filename_psf)
 
 

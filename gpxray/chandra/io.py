@@ -137,8 +137,13 @@ class ChandraFileIndex:
 
     @property
     def filename_repro_asp_hist(self):
-        """Aspect solution file"""
+        """Aspect histogram"""
         return self.path_repro / f"acisf{self.obs_id:05d}_asp_hist.fits"
+
+    @property
+    def filename_repro_inst_map(self):
+        """Instrument map"""
+        return self.path_repro / f"acisf{self.obs_id:05d}_inst_map.fits"
 
     @property
     def index_table(self):
