@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import sys
+
 import pytest
 from gammapy.utils.testing import run_cli
 
@@ -139,7 +141,7 @@ def test_cli_chandra_fit_spectra(path_config):
     assert path.exists()
 
 
-@pytest.mark.xfail
+@pytest.mark.skipif(sys.platform.startswith("darwin"), reason="Skip on MacOS")
 def test_cli_chandra_simulate_psf(path_config):
     args = [
         "chandra",
