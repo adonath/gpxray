@@ -105,18 +105,6 @@ def test_cli_chandra_bin_events(path_config):
     assert path.exists()
 
 
-def test_cli_chandra_compute_exposure(path_config):
-    args = [
-        "chandra",
-        f"--filename={path_config}",
-        "compute-exposure",
-    ]
-    run_cli(cli, args)
-
-    path = path_config.parent / "my-config/62558/exposure.fits"
-    assert path.exists()
-
-
 def test_cli_chandra_extract_spectra(path_config):
     args = [
         "chandra",
@@ -144,6 +132,18 @@ def test_cli_chandra_fit_spectra(path_config):
     assert path.exists()
 
 
+def test_cli_chandra_compute_exposure(path_config):
+    args = [
+        "chandra",
+        f"--filename={path_config}",
+        "compute-exposure",
+    ]
+    run_cli(cli, args)
+
+    path = path_config.parent / "my-config/62558/exposure.fits"
+    assert path.exists()
+
+
 @pytest.mark.skipif(sys.platform.startswith("darwin"), reason="Skip on MacOS")
 def test_cli_chandra_simulate_psf(path_config):
     args = [
@@ -153,5 +153,5 @@ def test_cli_chandra_simulate_psf(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/62558/psf/psf-pks-0637.fits"
+    path = path_config.parent / "my-config/62558/psf-pks-0637.fits"
     assert path.exists()
