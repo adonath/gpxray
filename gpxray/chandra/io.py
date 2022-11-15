@@ -131,6 +131,16 @@ class ChandraFileIndex:
         return self.path_repro / f"acisf{self.obs_id:05d}_repro_evt2_reprojected.fits"
 
     @property
+    def filename_repro_asol1(self):
+        """Aspect solution file"""
+        return self.path_repro / "pcadf{self.obs_id:05d}_000N001_asol1.fits"
+
+    @property
+    def filename_repro_asp_hist(self):
+        """Aspect solution file"""
+        return self.path_repro / "acisf{self.obs_id:05d}_asp_hist.fits"
+
+    @property
     def index_table(self):
         """Index table (`astropy.table.Table`)"""
         index_table = Table.read(self.path_obs_id / "oif.fits")

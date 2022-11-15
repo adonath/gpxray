@@ -45,6 +45,11 @@ CIAO_TOOLS_REQUIRED = {
         "outfile": "{file_index.filename_repro_evt2_reprojected}",
         "match": "{file_index_ref.filename_repro_evt2}",
     },
+    "asphist": {
+        "infile": "{file_index.filename_repro_asol1}",
+        "outfile": "{file_index.filename_repro_asp_hist}",
+        "evtfile": "{file_index.filename_repro_evt2_reprojected}",
+    },
 }
 
 
@@ -121,6 +126,7 @@ ChandraReproConfig = create_ciao_config("chandra_repro", "ChandraReproConfig")
 ReprojectEventsConfig = create_ciao_config("reproject_events", "ReprojectEventsConfig")
 SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 SpecExtractConfig = create_ciao_config("specextract", "SpecExtractConfig")
+AspHistConfig = create_ciao_config("asphist", "AspHistConfig")
 
 
 class CiaoToolsConfig(BaseConfig):
@@ -129,6 +135,7 @@ class CiaoToolsConfig(BaseConfig):
     reproject_events: ReprojectEventsConfig = ReprojectEventsConfig()
     simulate_psf: SimulatePSFConfig = SimulatePSFConfig(marx_root=MARX_ROOT)
     specextract: SpecExtractConfig = SpecExtractConfig()
+    asphist: AspHistConfig = AspHistConfig()
 
 
 class EnergyRangeConfig(BaseConfig):
