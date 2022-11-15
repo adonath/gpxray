@@ -30,11 +30,14 @@ irfs:
                 lon: "06h35m46.5079301472s"
                 lat: "-75d16m16.816418256s"
             radius: 30 arcsec
+            energy_range:
+                min: 0.5 keV
+                max: 7.0 keV
+            energy_groups: 5
+            energy_step: 0.01
         psf:
-            pileup: true
-            readout_streak: true
-            flux: 1e-6
-            monoenergy: 1.5
+            pileup: false
+            readout_streak: false
 """
 
 
