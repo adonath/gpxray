@@ -46,15 +46,20 @@ CIAO_TOOLS_REQUIRED = {
         "match": "{file_index_ref.filename_repro_evt2}",
     },
     "asphist": {
-        "infile": "{file_index.filename_repro_asol1}",
+        "infile": "{file_index.filenames_repro_asol}",
         "outfile": "{file_index.filename_repro_asp_hist}",
         "evtfile": "{file_index.filename_repro_evt2_reprojected}",
     },
     "mkinstmap": {
         "outfile": "{file_index.filename_repro_inst_map}",
         "spectrumfile": "{{file_index.filenames_spectra[{irf_label}]}}",
-        "obsfile": "{file_index.filename_repro_asol1}",
-        "detsubsys": "ACIS-1",
+        "obsfile": "{file_index.filename_repro_evt2_reprojected}[EVENTS]",
+        "detsubsys": "ACIS-1",  # TODO: this should include all CCDs?
+    },
+    "mkexpmap": {
+        "asphistfile": "{file_index.filename_repro_asp_hist}",
+        "outfile": "{file_index.filename_exposure}",
+        "instmapfile": "{file_index.filename_repro_inst_map}",
     },
 }
 
@@ -134,6 +139,7 @@ SimulatePSFConfig = create_ciao_config("simulate_psf", "SimulatePSFConfig")
 SpecExtractConfig = create_ciao_config("specextract", "SpecExtractConfig")
 AspHistConfig = create_ciao_config("asphist", "AspHistConfig")
 MkInstMapConfig = create_ciao_config("mkinstmap", "MkInstMapConfig")
+MkExpMapConfig = create_ciao_config("mkexpmap", "MkExpMapConfig")
 
 
 class CiaoToolsConfig(BaseConfig):
@@ -144,6 +150,7 @@ class CiaoToolsConfig(BaseConfig):
     specextract: SpecExtractConfig = SpecExtractConfig()
     asphist: AspHistConfig = AspHistConfig()
     mkinstmap: MkInstMapConfig = MkInstMapConfig()
+    mkexpmap: MkExpMapConfig = MkExpMapConfig(normalize=False)
 
 
 class EnergyRangeConfig(BaseConfig):
@@ -270,6 +277,16 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
         return kwargs
 
 
+def region_to_ciao_str(region, wcs, bin_size):
+    """Convert Astropy region to ciao string"""
+    bbox = region.to_pixel(wcs=wcs).bounding_box
+
+    nx = int(bbox.shape[1] / bin_size)
+    ny = int(bbox.shape[0] / bin_size)
+
+    return f"{bbox.ixmin}:{bbox.ixmax}:#{nx},{bbox.iymin}:{bbox.iymax}:#{ny}"
+
+
 class PerSourceMkInstMapConfig(MkInstMapConfig):
     roi = ROIConfig()
 
@@ -280,15 +297,28 @@ class PerSourceMkInstMapConfig(MkInstMapConfig):
         kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
+        kwargs["pixelgrid"] = region_to_ciao_str(
+            region=self.roi.region, wcs=file_index.wcs, bin_size=self.roi.bin_size
+        )
 
-        bbox = self.roi.region.to_pixel(wcs=file_index.wcs).bounding_box
+        kwargs["detsubsys"] = file_index.ccds[0]
+        return kwargs
 
-        nx = int(bbox.shape[1] / self.roi.bin_size)
-        ny = int(bbox.shape[0] / self.roi.bin_size)
 
-        kwargs[
-            "pixelgrid"
-        ] = f"{bbox.ixmin}:{bbox.ixmax}:#{nx},{bbox.iymin}:{bbox.iymax}:#{ny}"
+class PerSourceMkExpMapConfig(MkExpMapConfig):
+    roi = ROIConfig()
+
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
+        """To ciao config"""
+        config = CiaoToolsConfig().mkexpmap
+
+        kwargs = config.to_ciao(
+            file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
+        )
+
+        kwargs["xygrid"] = region_to_ciao_str(
+            region=self.roi.region, wcs=file_index.wcs, bin_size=self.roi.bin_size
+        )
         return kwargs
 
 
@@ -296,6 +326,7 @@ class IRFConfig(BaseConfig):
     spectrum: PerSourceSpecExtractConfig = PerSourceSpecExtractConfig()
     psf: PerSourceSimulatePSFConfig = PerSourceSimulatePSFConfig()
     aeff: PerSourceMkInstMapConfig = PerSourceMkInstMapConfig()
+    exposure: PerSourceMkExpMapConfig = PerSourceMkExpMapConfig()
 
     class Config:
         fields = {
@@ -324,6 +355,8 @@ class ChandraConfig(BaseConfig):
 
         for config in self.irfs.values():
             config.psf.binsize = self.roi.bin_size
+            config.aeff.roi = self.roi
+            config.exposure.roi = self.roi
 
     @classmethod
     def read(cls, path):
