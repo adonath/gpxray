@@ -42,6 +42,7 @@ dependencies:
   - codespell
   - flake8
   - isort
+  - shapely
   - sphinx
   - sphinx-astropy
   - sphinx-click

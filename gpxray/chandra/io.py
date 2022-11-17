@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 from astropy import units as u
 from astropy.io import fits
@@ -7,6 +8,7 @@ from astropy.table import Table
 from astropy.utils import lazyproperty
 from astropy.wcs import WCS
 from gammapy.data import EventList
+from regions import PixCoord, PolygonPixelRegion, RegionVisual
 
 
 def wcs_from_header_chandra(header, x_col=11):
@@ -70,6 +72,47 @@ class ChandraFileIndex:
         """Get WCS from reprojected events file"""
         header = fits.getheader(self.filename_repro_evt2_reprojected, "EVENTS")
         return wcs_from_header_chandra(header=header)
+
+    @property
+    def ccds(self):
+        """CCDs which were part of the obs"""
+        detnam = self.index_table.meta["DETNAM"]
+
+        prefix, indices = detnam.split("-")
+
+        ccds = [f"{prefix}-{idx}" for idx in list(indices)]
+        return ccds
+
+    @property
+    def fov_regions(self):
+        """FoV regions"""
+        filename = self.index_filenames["FOV"]
+        table = Table.read(filename, hdu="FOV")
+
+        fovs = {}
+
+        for row, color in zip(table, plt.color_sequences["tab10"]):
+            coords = PixCoord(x=row["X"], y=row["Y"])
+            region = PolygonPixelRegion(
+                vertices=coords, visual=RegionVisual({"color": color})
+            )
+            fovs[row["CCD_ID"]] = region
+
+        return fovs
+
+    @property
+    def fov_regions_shapely(self):
+        """FoV shapes"""
+        from shapely.geometry import Polygon
+
+        shapes = {}
+
+        for name, region in self.fov_regions.items():
+            x, y = region.vertices.xy
+            shape = Polygon(shell=zip(x, y))
+            shapes[name] = shape
+
+        return shapes
 
     @property
     def path(self):
@@ -136,6 +179,12 @@ class ChandraFileIndex:
         return self.path_repro / f"pcadf{self.obs_id:05d}_repro_asol1.fits"
 
     @property
+    def filenames_repro_asol(self):
+        """Aspect solution file"""
+        filenames = self.path_repro.glob("*asol1.fits")
+        return ",".join([str(_) for _ in filenames])
+
+    @property
     def filename_repro_asp_hist(self):
         """Aspect histogram"""
         return self.path_repro / f"acisf{self.obs_id:05d}_asp_hist.fits"
@@ -152,12 +201,22 @@ class ChandraFileIndex:
         index_table.add_index("MEMBER_CONTENT")
         return index_table
 
-    def get_filename(self, member_content):
-        """Get file name"""
-        filename = self.index_table.loc[f"{member_content:32s}"]["MEMBER_LOCATION"]
-        filename = filename.strip()
-        filename = filename.replace(".fits", ".fits.gz")
-        return self.path_base / filename
+    @lazyproperty
+    def index_filenames(self):
+        """Index filenames (`dict`)"""
+        filenames = {}
+
+        keys = [_.strip() for _ in self.index_table["MEMBER_NAME"]]
+
+        for key, filename in zip(keys, self.index_table["MEMBER_LOCATION"]):
+            filename = filename.strip()
+
+            if key not in ["FOV"]:
+                filename = filename.replace(".fits", ".fits.gz")
+
+            filenames[key] = self.path_obs_id / filename
+
+        return filenames
 
     @property
     def path_output(self):
