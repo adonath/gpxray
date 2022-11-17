@@ -252,13 +252,6 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "minsize": {"include": True},
         }
 
-    def dict(self, **kwargs):
-        """Dict"""
-        data = super().dict(**kwargs)
-        data["ra"] = self.ra
-        data["dec"] = self.dec
-        return data
-
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Spectrum extract region to ciao config"""
         config = CiaoToolsConfig().simulate_psf.copy()
@@ -266,6 +259,10 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
 
+        # Those are non visible linked parameters
+        kwargs["ra"] = self.ra
+        kwargs["dec"] = self.dec
+        kwargs["bin_size"] = self.bins_size
         kwargs.update(self.dict())
         return kwargs
 
