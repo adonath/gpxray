@@ -250,6 +250,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "readout_streak": {"include": True},
             "extended": {"include": True},
             "minsize": {"include": True},
+            "numiter": {"include": True},
         }
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
@@ -259,11 +260,16 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
 
+        kwargs.update(self.dict())
+
         # Those are non visible linked parameters
         kwargs["ra"] = self.ra
         kwargs["dec"] = self.dec
         kwargs["binsize"] = self.binsize
+<<<<<<< HEAD
         kwargs.update(self.dict())
+=======
+>>>>>>> 44e41ab (Fix config handling)
         return kwargs
 
 
@@ -391,7 +397,6 @@ class ChandraConfig(BaseConfig):
         super().__init__(**kwargs)
 
         for config in self.irfs.values():
-            config.psf = self.ciao.simulate_psf.copy(update=config.psf.dict())
             config.psf.binsize = self.roi.bin_size
             config.aeff.roi = self.roi
             config.exposure.roi = self.roi
