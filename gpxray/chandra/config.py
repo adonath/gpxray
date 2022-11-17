@@ -383,7 +383,7 @@ class IRFConfig(BaseConfig):
 class ChandraConfig(BaseConfig):
     name: str = "my-analysis"
     sub_name: str = "my-config"
-    path_data: PathType = Path("../data")
+    path_data: PathType = Path("./data")
     obs_ids: List[int] = [62558]
     obs_id_ref: int = 62558
     roi: ROIConfig = ROIConfig()
