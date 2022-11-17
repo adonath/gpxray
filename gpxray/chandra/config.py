@@ -391,6 +391,7 @@ class ChandraConfig(BaseConfig):
         super().__init__(**kwargs)
 
         for config in self.irfs.values():
+            config.psf = self.ciao.simulate_psf.copy(update=config.psf.dict())
             config.psf.binsize = self.roi.bin_size
             config.aeff.roi = self.roi
             config.exposure.roi = self.roi
