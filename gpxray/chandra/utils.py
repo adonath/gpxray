@@ -25,7 +25,7 @@ def run_ciao_tool(
     overwrite ; bool
         Overwrite output files
     """
-    with runtool.new_pfiles_environment(ardlib=True):
+    with runtool.new_pfiles_environment(ardlib=False):
         tool = getattr(runtool, config._tool_name)
 
         kwargs = config.to_ciao(

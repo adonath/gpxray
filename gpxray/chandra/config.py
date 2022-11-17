@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 from typing import ClassVar, Dict, List
 
 import yaml
@@ -62,6 +63,16 @@ CIAO_TOOLS_REQUIRED = {
         "instmapfile": "{file_index.filename_repro_inst_map}",
     },
 }
+
+
+class PathType(Path):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        return Path(v)
 
 
 class BaseConfig(BaseModel):
@@ -372,6 +383,7 @@ class IRFConfig(BaseConfig):
 class ChandraConfig(BaseConfig):
     name: str = "my-analysis"
     sub_name: str = "my-config"
+    path_data: PathType = Path("../data")
     obs_ids: List[int] = [62558]
     obs_id_ref: int = 62558
     roi: ROIConfig = ROIConfig()

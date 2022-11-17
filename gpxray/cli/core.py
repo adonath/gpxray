@@ -44,6 +44,11 @@ class ContextObject(object):
         return self.filename.parent
 
     @property
+    def path_data(self):
+        """Path data"""
+        return self.path / self.config.path_data
+
+    @property
     def path_output(self):
         """Path"""
         return self.path / self.config.sub_name
@@ -56,7 +61,7 @@ class ContextObject(object):
         for obs_id in self.obs_ids:
             index = ChandraFileIndex(
                 obs_id=obs_id,
-                path=self.path,
+                path=self.path_data,
                 path_output=self.path_output,
                 irf_names=list(self.config.irfs),
             )
@@ -68,7 +73,9 @@ class ContextObject(object):
     def file_index_ref(self):
         """Reference file index"""
         return ChandraFileIndex(
-            obs_id=self.config.obs_id_ref, path=self.path, path_output=self.path_output
+            obs_id=self.config.obs_id_ref,
+            path=self.path_data,
+            path_output=self.path_output,
         )
 
 

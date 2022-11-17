@@ -122,7 +122,7 @@ class ChandraFileIndex:
     @property
     def path_data(self):
         """Data location path"""
-        return self._path / "data"
+        return self._path
 
     @property
     def path_obs_id(self):

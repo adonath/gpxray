@@ -108,28 +108,47 @@ def cli_chandra_bin_events(obj):
         )
 
 
-@click.command("compute-exposure", short_help="Compute exposure FITS image")
-@click.pass_obj
-def cli_chandra_compute_exposure(obj):
-    """Compute exposure image"""
-    # TODO: take into account spatial dependence and maybe compute absolute exposure...
+def compute_exposure_simple(file_index, obj):
+    """Compute exposure simple"""
     exposure_ref = obj.file_index_ref.index_table.meta["EXPOSURE"]
+    value = file_index.index_table.meta["EXPOSURE"]
+    header = fits.getheader(file_index.filename_counts)
+    shape = header["NAXIS2"], header["NAXIS1"]
+    data = value * np.ones(shape) / exposure_ref
+    hdu = fits.PrimaryHDU(data=data, header=WCS(header).to_header())
 
-    for file_index in obj.file_indices:
-        if file_index.filename_exposure.exists() and not obj.overwrite:
-            log.info(
-                f"Skipping compute exposure, {file_index.filename_exposure} "
-                "already exists."
-            )
-            continue
+    hdulist = fits.HDUList([hdu])
 
+    filename = file_index.filename_exposure
+    log.info(f"Writing {filename}")
+
+    hdulist.writeto(filename, overwrite=obj.overwrite)
+
+
+def compute_exposure_ciao(file_index, obj):
+    """Compute exposure ciao"""
+    irf_label = list(obj.config.irfs)[0]
+
+    if file_index.filename_repro_asp_hist.exists() and not obj.overwrite:
+        log.info(
+            f"Skipping compute asp hist, {file_index.filename_repro_asp_hist} "
+            "already exists."
+        )
+        pass
+    else:
         run_ciao_tool(
             config=obj.config.ciao.asphist,
             file_index=file_index,
             overwrite=obj.overwrite,
         )
 
-        irf_label = list(obj.config.irfs)[0]
+    if file_index.filename_repro_inst_map.exists() and not obj.overwrite:
+        log.info(
+            f"Skipping compute inst map, {file_index.filename_repro_inst_map} "
+            "already exists."
+        )
+        pass
+    else:
         run_ciao_tool(
             config=obj.config.irfs[irf_label].aeff,
             file_index=file_index,
@@ -137,24 +156,29 @@ def cli_chandra_compute_exposure(obj):
             irf_label=irf_label,
         )
 
-        run_ciao_tool(
-            config=obj.config.irfs[irf_label].exposure,
-            file_index=file_index,
-            overwrite=obj.overwrite,
-        )
+    run_ciao_tool(
+        config=obj.config.irfs[irf_label].exposure,
+        file_index=file_index,
+        overwrite=obj.overwrite,
+    )
 
-        value = file_index.index_table.meta["EXPOSURE"]
-        header = fits.getheader(file_index.filename_counts)
-        shape = header["NAXIS2"], header["NAXIS1"]
-        data = value * np.ones(shape) / exposure_ref
-        hdu = fits.PrimaryHDU(data=data, header=WCS(header).to_header())
 
-        hdulist = fits.HDUList([hdu])
+@click.command("compute-exposure", short_help="Compute exposure FITS image")
+@click.pass_obj
+def cli_chandra_compute_exposure(obj):
+    """Compute exposure image"""
+    # TODO: take into account spatial dependence and maybe compute absolute exposure...
 
-        filename = file_index.filename_exposure
-        log.info(f"Writing {filename}")
+    for file_index in obj.file_indices:
 
-        hdulist.writeto(filename, overwrite=obj.overwrite)
+        if file_index.filename_exposure.exists() and not obj.overwrite:
+            log.info(
+                f"Skipping compute exposure, {file_index.filename_exposure} "
+                "already exists."
+            )
+            continue
+
+        compute_exposure_simple(file_index=file_index, obj=obj)
 
 
 @click.command("extract-spectra", short_help="Extract spectra, arfs and rmfs")

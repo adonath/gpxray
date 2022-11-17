@@ -44,7 +44,9 @@ irfs:
 @pytest.fixture(scope="session")
 def path_config(tmp_path_factory):
     path = tmp_path_factory.mktemp("test-chandra-pks")
-    path_config = path / "config.yaml"
+
+    path_config = path / "my-config/config.yaml"
+    path_config.parent.mkdir(exist_ok=True)
 
     config = ChandraConfig.from_yaml(CONFIG_STR)
     config.write(path_config)
@@ -54,6 +56,7 @@ def path_config(tmp_path_factory):
 
 def test_cli_chandra_config(tmp_path):
     path_config = tmp_path / "config.yaml"
+
     args = ["chandra", f"--filename={path_config}", "init-config"]
     run_cli(cli, args)
     assert path_config.exists()
@@ -63,7 +66,7 @@ def test_cli_chandra_download(path_config):
     args = ["chandra", f"--filename={path_config}", "download", "--exclude", "vvref"]
     run_cli(cli, args)
 
-    path = path_config.parent / "data/62558/"
+    path = path_config.parent / "../data/62558/"
     assert path.exists()
 
 
@@ -75,7 +78,7 @@ def test_cli_chandra_reprocess(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "data/62558/repro"
+    path = path_config.parent / "../data/62558/repro"
     assert path.exists()
 
 
@@ -88,7 +91,8 @@ def test_cli_chandra_reproject_events(path_config):
     run_cli(cli, args)
 
     path = (
-        path_config.parent / "data/62558/repro/acisf62558_repro_evt2_reprojected.fits"
+        path_config.parent
+        / "../data/62558/repro/acisf62558_repro_evt2_reprojected.fits"
     )
     assert path.exists()
 
