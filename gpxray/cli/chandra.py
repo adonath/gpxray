@@ -235,7 +235,7 @@ def cli_chandra_all(ctx):
     ctx.forward(cli_chandra_reprocess)
     ctx.forward(cli_chandra_reproject_events)
     ctx.forward(cli_chandra_bin_events)
-    ctx.forward(cli_chandra_compute_exposure)
     ctx.forward(cli_chandra_extract_spectra)
     ctx.forward(cli_chandra_fit_spectra)
+    ctx.forward(cli_chandra_compute_exposure)
     ctx.forward(cli_chandra_simulate_psf)
