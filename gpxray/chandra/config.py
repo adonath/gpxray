@@ -262,7 +262,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         # Those are non visible linked parameters
         kwargs["ra"] = self.ra
         kwargs["dec"] = self.dec
-        kwargs["bin_size"] = self.bins_size
+        kwargs["binsize"] = self.binsize
         kwargs.update(self.dict())
         return kwargs
 
