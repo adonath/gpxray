@@ -230,7 +230,7 @@ class ROIConfig(DMCopyConfig):
 
         bbox = self.region.to_pixel(wcs=file_index.wcs).bounding_box
         spatial = (
-            f"bin x={bbox.ixmin}:{bbox.ixmax}:0.5, "
+            f"bin x={bbox.ixmin}:{bbox.ixmax}:{self.bin_size}, "
             f"y={bbox.iymin}:{bbox.iymax}:{self.bin_size}"
         )
 

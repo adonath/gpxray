@@ -105,7 +105,7 @@ def test_cli_chandra_bin_events(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/62558/counts.fits"
+    path = path_config.parent / "my-config/62558/counts.fits.gz"
     assert path.exists()
 
 
@@ -144,7 +144,7 @@ def test_cli_chandra_compute_exposure(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/62558/exposure.fits"
+    path = path_config.parent / "my-config/62558/exposure.fits.gz"
     assert path.exists()
 
 
@@ -157,5 +157,5 @@ def test_cli_chandra_simulate_psf(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/62558/psf-pks-0637.fits"
+    path = path_config.parent / "my-config/62558/psf-pks-0637.fits.gz"
     assert path.exists()

@@ -17,6 +17,17 @@ def execute_command(command, cwd="."):
     subprocess.run(command, cwd=cwd)
 
 
+def gzip_fits_file(filename):
+    """Gzip file using Astropy"""
+    hdulist = fits.open(filename)
+
+    log.info(f"GZipping {filename}")
+
+    hdulist.writeto(filename.parent / (filename.name + ".gz"), overwrite=True)
+
+    filename.unlink()
+
+
 @click.command(name="init-config", short_help="Init config file")
 @click.pass_obj
 def cli_chandra_init_config(obj):
@@ -106,6 +117,7 @@ def cli_chandra_bin_events(obj):
             file_index=file_index,
             overwrite=obj.overwrite,
         )
+        gzip_fits_file(filename=file_index.filename_counts)
 
 
 def compute_exposure_simple(file_index, obj):
@@ -179,6 +191,7 @@ def cli_chandra_compute_exposure(obj):
             continue
 
         compute_exposure_simple(file_index=file_index, obj=obj)
+        gzip_fits_file(file_index.filename_exposure)
 
 
 @click.command("extract-spectra", short_help="Extract spectra, arfs and rmfs")
@@ -249,6 +262,7 @@ def cli_chandra_simulate_psf(obj):
             )
             path_input = file_index.paths_psf_marx[irf_label] / "psf"
             copy_file(path_input=path_input, path_output=filename_psf)
+            gzip_fits_file(filename=filename_psf)
 
 
 @click.command("all", short_help="Run all commands")
