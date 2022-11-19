@@ -124,7 +124,10 @@ def compute_exposure_simple(file_index, obj):
     """Compute exposure simple"""
     exposure_ref = obj.file_index_ref.index_table.meta["EXPOSURE"]
     value = file_index.index_table.meta["EXPOSURE"]
-    header = fits.getheader(file_index.filename_counts)
+
+    filename = file_index.filename_counts
+    header = fits.getheader(filename.parent / (filename.name + ".gz"))
+
     shape = header["NAXIS2"], header["NAXIS1"]
     data = value * np.ones(shape) / exposure_ref
     hdu = fits.PrimaryHDU(data=data, header=WCS(header).to_header())
