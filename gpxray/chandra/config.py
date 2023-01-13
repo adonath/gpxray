@@ -266,10 +266,6 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         kwargs["ra"] = self.ra
         kwargs["dec"] = self.dec
         kwargs["binsize"] = self.binsize
-<<<<<<< HEAD
-        kwargs.update(self.dict())
-=======
->>>>>>> 44e41ab (Fix config handling)
         return kwargs
 
 
