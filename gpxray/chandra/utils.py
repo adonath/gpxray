@@ -1,4 +1,5 @@
 import logging
+import subprocess
 
 import sherpa.astro.ui as sau
 from ciao_contrib import runtool
@@ -75,3 +76,17 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
     filename = file_index.filenames_spectra[irf_label]
 
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)
+
+
+def run_sao_trace(config):
+    """Run sao trace
+
+    Parameters
+    ----------
+    config : `~gpxray.chandra.config.SaoTraceConfig`
+        Tools config
+    """
+    command = [config.executable, config.to_sao_trace()]
+    log.info(f"Running command: {command}")
+
+    subprocess.run(command, check=True)
