@@ -3,6 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 from astropy.utils import lazyproperty
@@ -84,6 +85,48 @@ class ChandraFileIndex:
         self._path = Path(path)
         self._path_output = Path(path_output)
         self._irf_names = irf_names
+
+    @property
+    def t_start(self):
+        """Start time"""
+        header = fits.getheader(self.filename_repro_asol1)
+        t_start = header["TSTART"]
+        return float(t_start)
+
+    @property
+    def t_stop(self):
+        """Start time"""
+        header = fits.getheader(self.filename_repro_asol1)
+        t_stop = header["TSTOP"]
+        return float(t_stop)
+
+    @property
+    def limit(self):
+        """Limit"""
+        return self.t_stop - self.t_start
+
+    @property
+    def ra_pnt(self):
+        """RA pointing"""
+        header = fits.getheader(self.filename_repro_evt2_reprojected, "EVENTS")
+        return float(header["RA_PNT"])
+
+    @property
+    def dec_pnt(self):
+        """DEC pointing"""
+        header = fits.getheader(self.filename_repro_evt2_reprojected, "EVENTS")
+        return float(header["DEC_PNT"])
+
+    @property
+    def roll_pnt(self):
+        """ROL pointing"""
+        header = fits.getheader(self.filename_repro_evt2_reprojected, "EVENTS")
+        return float(header["ROLL_PNT"])
+
+    @lazyproperty
+    def pointing(self):
+        """Pointing position"""
+        return SkyCoord(self.ra_pnt, self.dec_pnt, unit="deg", frame="icrs")
 
     @property
     def irf_names(self):
@@ -199,7 +242,8 @@ class ChandraFileIndex:
     @property
     def filename_repro_asol1(self):
         """Aspect solution file"""
-        return self.path_repro / f"pcadf{self.obs_id:05d}_repro_asol1.fits"
+        filenames = sorted(self.path_repro.glob("*asol1.fits"))
+        return filenames[0]
 
     @property
     def filenames_repro_asol(self):
