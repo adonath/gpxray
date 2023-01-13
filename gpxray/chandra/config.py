@@ -243,6 +243,95 @@ class ROIConfig(DMCopyConfig):
         return kwargs
 
 
+SRCPARS_TEMPLATE = """
+ra_pnt   = {{file_index.ra_pnt}}
+dec_pnt  = {{file_index.dec_pnt}}
+roll_pnt = {{file_index.roll_pnt}}
+
+dither_asol{{{{
+        file = {{file_index.filename_repro_asol1}},
+        ra   = ra_pnt,
+        dec  = dec_pnt,
+        roll = roll_pnt
+    }}}}
+
+point{{{{
+    position = {{{{
+        ra = {{ra}},
+        dec = {{dec}},
+        ra_aimpt = ra_pnt,
+        dec_aimpt = dec_pnt,
+       }}}},
+
+    spectrum = {{{{{{{{
+        file = {{file_index.filenames_spectra[{irf_label}]}},
+        units = "photons/s/cm2",
+        scale = 1,
+        emin=elo,
+        emax=ehi,
+        flux=spectrum,
+        format = "rdb"
+        }}}}}}}}
+    }}}}
+"""
+
+
+# TODO: improve config typesn based on https://cxc.harvard.edu/cal/Hrma/Raytrace/Trace-nest.html
+class SAOTraceConfig(BaseConfig):
+    """SAOTrace config"""
+
+    tag: str = "foo"
+    srcpars: str = ""
+    shells: str = "all"
+    tstart: float = 0
+    limit = 0.01
+    z: float = 10079.774
+    src: str = "default"
+    output: str = "default"
+    output_fmt: str = "fits-axaf"
+    output_coord: str = "hrma"
+    output_fields: str = "min"
+    limit_type: str = "r/mm2"
+    seed1: int = 1
+    seed2: int = 1
+    block: int = 0
+    block_inc: int = 100
+    focus: str = "no"
+    tally: int = 0
+    throttle: int = -1
+    throttle_poisson: str = "no"
+    config_dir: str = "/home/saotrace-db/ts_config"
+    config_db: str = "orbit-200809-01f-a"
+    clean: str = "all"
+    debug: List[str] = [""]
+    help: str = "no"
+    version: str = "no"
+    mode: str = "a"
+
+    def to_src_pars(self, file_index, irf_label=None):
+        """Format the srcpars string"""
+
+        if irf_label:
+            config = SRCPARS_TEMPLATE.format(irf_label=irf_label)
+        else:
+            config = SRCPARS_TEMPLATE
+
+        config = config.format(file_index=file_index, ra="1", dec="2")
+
+        return config
+
+    def to_sao_trace_config(self, file_index, file_index_ref=None, irf_label=None):
+        """Convert to trace-nest command line options"""
+        args = []
+
+        for key, value in self.dict().items():
+            if isinstance(value, list):
+                value = " ".join(value)
+            args.append(f"{key}={value}")
+
+        return args
+
+
 class PerSourceSimulatePSFConfig(SimulatePSFConfig):
     class Config:
         fields = {
