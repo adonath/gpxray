@@ -8,7 +8,15 @@ from astropy.table import Table
 from astropy.utils import lazyproperty
 from astropy.wcs import WCS
 from gammapy.data import EventList
+from gammapy.maps import MapAxis, RegionGeom, RegionNDMap
+from gammapy.maps.utils import edges_from_lo_hi
 from regions import PixCoord, PolygonPixelRegion, RegionVisual
+
+__all__ = [
+    "read_spectrum_chart",
+    "read_event_list_chandra",
+    "ChandraFileIndex",
+]
 
 
 def wcs_from_header_chandra(header, x_col=11):
@@ -33,17 +41,32 @@ def wcs_from_header_chandra(header, x_col=11):
     return wcs
 
 
-def read_event_list_chandra(filename):
-    """Read event list"""
-    table = Table.read(filename)
-    header = fits.getheader(filename, "EVENTS")
-    wcs = wcs_from_header_chandra(header=header)
+def read_spectrum_chart(filename):
+    """Read CHART spectrum"""
+    data = Table.read(filename, format="ascii")
 
-    ra, dec = wcs.wcs_pix2world(table["x"], table["y"], 1)
+    edges = edges_from_lo_hi(data["col1"], data["col2"])
+    axis = MapAxis.from_edges(edges=edges, name="energy", unit="keV", interp="log")
+
+    geom = RegionGeom.create(region=None, axes=[axis])
+    spectrum = RegionNDMap.from_geom(geom=geom)
+    spectrum.data = data["col3"]
+    return spectrum
+
+
+def read_event_list_chandra(filename, hdu="EVENTS"):
+    """Read event list"""
+    hdu = fits.open(filename)[hdu]
+    table = Table.read(hdu)
+
+    wcs = wcs_from_header_chandra(header=hdu.header)
+
+    for colname in table.colnames:
+        table.rename_column(colname, colname.upper())
+
+    ra, dec = wcs.wcs_pix2world(table["X"], table["Y"], 1)
     table["RA"] = ra * u.deg
     table["DEC"] = dec * u.deg
-    table.rename_column("energy", "ENERGY")
-    table.rename_column("time", "TIME")
 
     mjd = table.meta["MJDREF"]
     mjd_int = np.floor(mjd).astype(np.int64)
