@@ -78,15 +78,42 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)
 
 
-def run_sao_trace(config, file_index, irf_label, overwrite):
-    """Run sao trace
+def run_sao_trace(
+    saotrace_config, irf_config, file_index, irf_label, idx, use_docker=True
+):
+    """_summary_
 
     Parameters
     ----------
-    config : `~gpxray.chandra.config.SaoTraceConfig`
+    config : `~gpxray.chandra.config.SAOTraceConfig`
         Tools config
+    file_index : `ChandraFileIndex`
+        Chandra file index
+    irf_label : str
+        IRF label
+    idx : int
+        Iteration index
+    use_docker : bool
+        Use docker command
     """
-    command = [config.executable, config.to_sao_trace()]
-    log.info(f"Running command: {command}")
+    path = file_index.paths_psf_saotrace[irf_label]
+    filename = path / "src.lua"
 
-    subprocess.run(command, check=True)
+    with filename.open("w") as fh:
+        text = saotrace_config.to_src_pars(
+            file_index=file_index, irf_config=irf_config, irf_label=irf_label
+        )
+        log.info(f"Writing {filename}")
+        fh.write(text)
+
+    command = ["trace-nest"]
+    command += saotrace_config.to_sao_trace(
+        file_index=file_index, irf_label=irf_label, idx=idx
+    )
+
+    if use_docker:
+        command = ["run_saotrace.sh", "-l", "docker"] + command
+
+    log.info(f"Running command: {' '.join(command)}")
+
+    subprocess.call(command)

@@ -497,6 +497,7 @@ class ChandraConfig(BaseConfig):
     psf_simulator: PSFSimulatorEnum = PSFSimulatorEnum.marx
     irfs: Dict[str, IRFConfig] = {"pks-0637": IRFConfig()}
     ciao: CiaoToolsConfig = CiaoToolsConfig()
+    saotrace: SAOTraceConfig = SAOTraceConfig()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
