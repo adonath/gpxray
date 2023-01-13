@@ -207,11 +207,23 @@ class ChandraFileIndex:
 
     @property
     def paths_psf_marx(self):
-        """PSF data path"""
+        """PSF data path marx"""
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_output / f"psf-{name}"
+            path = self.path_output / f"psf-marx-{name}"
+            path.mkdir(parents=True, exist_ok=True)
+            paths[name] = path
+
+        return paths
+
+    @property
+    def paths_psf_saotrace(self):
+        """PSF data path saotrace"""
+        paths = {}
+
+        for name in self.irf_names:
+            path = self.path_output / f"psf-sao-trace-{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 

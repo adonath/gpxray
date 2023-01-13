@@ -7,7 +7,8 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from gpxray.chandra.utils import run_ciao_tool, run_sherpa_spectral_fit
+from gpxray.chandra.config import PSFSimulatorEnum
+from gpxray.chandra.utils import run_ciao_tool, run_sao_trace, run_sherpa_spectral_fit
 
 log = logging.getLogger(__name__)
 
@@ -256,6 +257,16 @@ def cli_chandra_simulate_psf(obj):
             if filename_psf.exists() and not obj.overwrite:
                 log.info(f"Skipping simulate-psf, {filename_psf} " "already exists.")
                 continue
+
+            if obj.config.psf_simulator == PSFSimulatorEnum.saotrace:
+                for idx in range(irf_config.psf.num_iter):
+                    run_sao_trace(
+                        config=irf_config.psf,
+                        file_index=file_index,
+                        irf_label=irf_label,
+                        overwrite=obj.overwrite,
+                        idx=idx,
+                    )
 
             run_ciao_tool(
                 config=irf_config.psf,

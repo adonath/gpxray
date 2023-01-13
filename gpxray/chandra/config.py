@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from enum import Enum
 from pathlib import Path
 from typing import ClassVar, Dict, List
 
@@ -169,6 +170,11 @@ class EnergyRangeConfig(BaseConfig):
     max: EnergyType = 7 * u.keV
 
 
+class PSFSimulatorEnum(str, Enum):
+    marx = "marx"
+    saotrace = "saotrace"
+
+
 class SkyCoordConfig(BaseConfig):
     frame: FrameEnum = FrameEnum.icrs
     lon: AngleType = Angle("06h35m46.5079301472s")
@@ -281,7 +287,7 @@ class SAOTraceConfig(BaseConfig):
     """SAOTrace config"""
 
     tag: str = "foo"
-    srcpars: str = ""
+    srcpars: str = "src.lua"
     shells: str = "all"
     tstart: float = 0
     limit = 0.01
@@ -291,7 +297,7 @@ class SAOTraceConfig(BaseConfig):
     output_fmt: str = "fits-axaf"
     output_coord: str = "hrma"
     output_fields: str = "min"
-    limit_type: str = "r/mm2"
+    limit_type: str = "sec"
     seed1: int = 1
     seed2: int = 1
     block: int = 0
@@ -308,7 +314,7 @@ class SAOTraceConfig(BaseConfig):
     version: str = "no"
     mode: str = "a"
 
-    def to_src_pars(self, file_index, irf_label=None):
+    def to_src_pars(self, file_index, irf_config, irf_label=None):
         """Format the srcpars string"""
 
         if irf_label:
@@ -316,15 +322,28 @@ class SAOTraceConfig(BaseConfig):
         else:
             config = SRCPARS_TEMPLATE
 
-        config = config.format(file_index=file_index, ra="1", dec="2")
+        config = config.format(
+            file_index=file_index, ra=irf_config.ra, dec=irf_config.dec
+        )
 
         return config
 
-    def to_sao_trace_config(self, file_index, file_index_ref=None, irf_label=None):
+    def to_sao_trace_config(self, file_index, idx, irf_label=None):
         """Convert to trace-nest command line options"""
         args = []
 
-        for key, value in self.dict().items():
+        kwargs = self.dict()
+
+        path = file_index.paths_psf_saotrace[irf_label]
+        kwargs["output"] = path / f"saotrace_rays_iter{idx}.fits"
+        kwargs["srcpars"] = path / "src.lua"
+        kwargs["tstart"] = file_index.t_start
+        kwargs["limit"] = file_index.limit
+        kwargs["tag"] = irf_label + f"_{file_index.obs_id}"
+        kwargs["seed1"] = idx
+        kwargs["seed2"] = idx + 42
+
+        for key, value in kwargs.items():
             if isinstance(value, list):
                 value = " ".join(value)
             args.append(f"{key}={value}")
@@ -475,6 +494,7 @@ class ChandraConfig(BaseConfig):
     obs_ids: List[int] = [62558]
     obs_id_ref: int = 62558
     roi: ROIConfig = ROIConfig()
+    psf_simulator: PSFSimulatorEnum = PSFSimulatorEnum.marx
     irfs: Dict[str, IRFConfig] = {"pks-0637": IRFConfig()}
     ciao: CiaoToolsConfig = CiaoToolsConfig()
 

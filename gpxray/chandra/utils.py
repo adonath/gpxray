@@ -78,7 +78,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)
 
 
-def run_sao_trace(config):
+def run_sao_trace(config, file_index, irf_label, overwrite):
     """Run sao trace
 
     Parameters
