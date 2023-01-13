@@ -107,12 +107,12 @@ def run_sao_trace(
         fh.write(text)
 
     command = ["trace-nest"]
-    command += saotrace_config.to_sao_trace(
+    command += saotrace_config.to_trace_nest_config(
         file_index=file_index, irf_label=irf_label, idx=idx
     )
 
     if use_docker:
-        command = ["run_saotrace.sh", "-l", "docker"] + command
+        command = ["./run-saotrace.sh", "-l", "docker"] + command
 
     log.info(f"Running command: {' '.join(command)}")
 

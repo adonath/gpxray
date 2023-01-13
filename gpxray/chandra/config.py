@@ -323,12 +323,12 @@ class SAOTraceConfig(BaseConfig):
             config = SRCPARS_TEMPLATE
 
         config = config.format(
-            file_index=file_index, ra=irf_config.ra, dec=irf_config.dec
+            file_index=file_index, ra=irf_config.psf.ra, dec=irf_config.psf.dec
         )
 
         return config
 
-    def to_sao_trace_config(self, file_index, idx, irf_label=None):
+    def to_trace_nest_config(self, file_index, idx, irf_label=None):
         """Convert to trace-nest command line options"""
         args = []
 

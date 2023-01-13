@@ -259,12 +259,12 @@ def cli_chandra_simulate_psf(obj):
                 continue
 
             if obj.config.psf_simulator == PSFSimulatorEnum.saotrace:
-                for idx in range(irf_config.psf.num_iter):
+                for idx in range(irf_config.psf.numiter):
                     run_sao_trace(
-                        config=irf_config.psf,
+                        saotrace_config=obj.config.saotrace,
                         file_index=file_index,
+                        irf_config=irf_config,
                         irf_label=irf_label,
-                        overwrite=obj.overwrite,
                         idx=idx,
                     )
 
