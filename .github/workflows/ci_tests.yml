@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MARX_ROOT: /usr/share/miniconda3/envs/gpxray-dev 
-      CACHE_NUMBER: 1
+      CACHE_NUMBER: 2
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
