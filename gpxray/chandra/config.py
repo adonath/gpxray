@@ -158,7 +158,7 @@ class CiaoToolsConfig(BaseConfig):
     dmcopy: DMCopyConfig = DMCopyConfig()
     chandra_repro: ChandraReproConfig = ChandraReproConfig()
     reproject_events: ReprojectEventsConfig = ReprojectEventsConfig()
-    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(marx_root=MARX_ROOT)
+    simulate_psf: SimulatePSFConfig = SimulatePSFConfig(marx_root=MARX_ROOT, blur=0.25)
     specextract: SpecExtractConfig = SpecExtractConfig()
     asphist: AspHistConfig = AspHistConfig()
     mkinstmap: MkInstMapConfig = MkInstMapConfig()
@@ -374,6 +374,13 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         kwargs["ra"] = self.ra
         kwargs["dec"] = self.dec
         kwargs["binsize"] = self.binsize
+        kwargs["simulator"] = self.simulator
+
+        if self.simulator == "file":
+            kwargs["rayfile"] = (
+                file_index.paths_psf_saotrace[irf_label] / "saotrace_rays_iter0.fits"
+            )
+            kwargs["outroot"] = file_index.paths_psf_saotrace[irf_label]
         return kwargs
 
 
@@ -506,6 +513,9 @@ class ChandraConfig(BaseConfig):
             config.psf.binsize = self.roi.bin_size
             config.aeff.roi = self.roi
             config.exposure.roi = self.roi
+
+            if self.psf_simulator == PSFSimulatorEnum.saotrace:
+                config.psf.simulator = "file"
 
     @classmethod
     def read(cls, path):
