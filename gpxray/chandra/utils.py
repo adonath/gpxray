@@ -5,6 +5,8 @@ import sherpa.astro.ui as sau
 from ciao_contrib import runtool
 from sherpa_contrib.chart import save_chart_spectrum
 
+from gpxray.chandra.io import convert_spectrum_chart_to_rdb
+
 log = logging.getLogger(__name__)
 
 
@@ -76,6 +78,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
     filename = file_index.filenames_spectra[irf_label]
 
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)
+    convert_spectrum_chart_to_rdb(filename, overwrite=overwrite)
 
 
 def run_sao_trace(

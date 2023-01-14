@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -12,6 +13,8 @@ from gammapy.data import EventList
 from gammapy.maps import MapAxis, RegionGeom, RegionNDMap
 from gammapy.maps.utils import edges_from_lo_hi
 from regions import PixCoord, PolygonPixelRegion, RegionVisual
+
+log = logging.getLogger(__name__)
 
 __all__ = [
     "read_spectrum_chart",
@@ -53,6 +56,19 @@ def read_spectrum_chart(filename):
     spectrum = RegionNDMap.from_geom(geom=geom)
     spectrum.data = data["col3"]
     return spectrum
+
+
+def convert_spectrum_chart_to_rdb(filename, overwrite=False):
+    """Convert chart spectrum to rdb format"""
+    data = Table.read(filename, format="ascii")
+    data.rename_column("col1", "emin")
+    data.rename_column("col2", "emax")
+    data.rename_column("col3", "flux")
+
+    filename_rdb = Path(filename).with_suffix(".rdb")
+
+    log.info(f"Writing {filename_rdb}")
+    data.write(filename_rdb, format="ascii.rdb", overwrite=overwrite)
 
 
 def read_event_list_chandra(filename, hdu="EVENTS"):
@@ -328,6 +344,19 @@ class ChandraFileIndex:
         for name in self.irf_names:
             filename = (
                 self.path_output / f"spectrum-{name}" / f"source-flux-chart-{name}.dat"
+            )
+            filenames[name] = filename
+
+        return filenames
+
+    @property
+    def filenames_spectra_rdb(self):
+        """Filename spectra"""
+        filenames = {}
+
+        for name in self.irf_names:
+            filename = (
+                self.path_output / f"spectrum-{name}" / f"source-flux-chart-{name}.rdb"
             )
             filenames[name] = filename
 

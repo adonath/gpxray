@@ -255,7 +255,7 @@ dec_pnt  = {{file_index.dec_pnt}}
 roll_pnt = {{file_index.roll_pnt}}
 
 dither_asol{{{{
-        file = {{file_index.filename_repro_asol1}},
+        file = '{{file_index.filename_repro_asol1}}',
         ra   = ra_pnt,
         dec  = dec_pnt,
         roll = roll_pnt
@@ -270,13 +270,13 @@ point{{{{
        }}}},
 
     spectrum = {{{{{{{{
-        file = {{file_index.filenames_spectra[{irf_label}]}},
-        units = "photons/s/cm2",
+        file = '{{file_index.filenames_spectra_rdb[{irf_label}]}}',
+        units = 'photons/s/cm2',
         scale = 1,
-        emin=elo,
-        emax=ehi,
-        flux=spectrum,
-        format = "rdb"
+        emin = 'emin',
+        emax = 'emax',
+        flux = 'flux',
+        format = 'rdb'
         }}}}}}}}
     }}}}
 """
@@ -306,7 +306,7 @@ class SAOTraceConfig(BaseConfig):
     tally: int = 0
     throttle: int = -1
     throttle_poisson: str = "no"
-    config_dir: str = "/home/saotrace-db/ts_config"
+    config_dir: str = "${SAOTRACE_DB}/ts_config"
     config_db: str = "orbit-200809-01f-a"
     clean: str = "all"
     debug: List[str] = [""]
@@ -340,7 +340,7 @@ class SAOTraceConfig(BaseConfig):
         kwargs["tstart"] = file_index.t_start
         kwargs["limit"] = file_index.limit
         kwargs["tag"] = irf_label + f"_{file_index.obs_id}"
-        kwargs["seed1"] = idx
+        kwargs["seed1"] = idx + 1
         kwargs["seed2"] = idx + 42
 
         for key, value in kwargs.items():
