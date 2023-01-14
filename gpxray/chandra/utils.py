@@ -81,7 +81,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
 def run_sao_trace(
     saotrace_config, irf_config, file_index, irf_label, idx, use_docker=True
 ):
-    """_summary_
+    """Run sao trace
 
     Parameters
     ----------
