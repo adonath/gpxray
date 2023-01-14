@@ -20,8 +20,8 @@ jobs:
     name: CI tests
     runs-on: ubuntu-latest
     env:
-      MARX_ROOT: /usr/share/miniconda3/envs/gpxray-devPRE 
-      CACHE_NUMBER: 0
+      MARX_ROOT: /usr/share/miniconda3/envs/gpxray-dev 
+      CACHE_NUMBER: 1
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
