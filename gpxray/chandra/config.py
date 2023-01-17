@@ -282,7 +282,7 @@ point{{{{
 """
 
 
-# TODO: improve config typesn based on https://cxc.harvard.edu/cal/Hrma/Raytrace/Trace-nest.html
+# TODO: improve config types based on https://cxc.harvard.edu/cal/Hrma/Raytrace/Trace-nest.html
 class SAOTraceConfig(BaseConfig):
     """SAOTrace config"""
 
@@ -361,7 +361,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "numiter": {"include": True},
         }
 
-    def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
+    def to_ciao(self, file_index, file_index_ref=None, irf_label=None, idx=0):
         """Spectrum extract region to ciao config"""
         config = CiaoToolsConfig().simulate_psf.copy()
         kwargs = config.to_ciao(
@@ -378,7 +378,8 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
 
         if self.simulator == "file":
             kwargs["rayfile"] = (
-                file_index.paths_psf_saotrace[irf_label] / "saotrace_rays_iter0.fits"
+                file_index.paths_psf_saotrace[irf_label]
+                / f"saotrace_output_i{idx:04d}.fits"
             )
             kwargs["outroot"] = file_index.paths_psf_saotrace[irf_label]
         return kwargs
