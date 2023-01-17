@@ -252,7 +252,10 @@ def cli_chandra_simulate_psf(obj):
     """Simulate psf"""
     for file_index in obj.file_indices:
         for irf_label, irf_config in obj.config.irfs.items():
-            filename_psf = file_index.filenames_psf[irf_label]
+            if obj.config.psf_simulator == PSFSimulatorEnum.saotrace:
+                filename_psf = file_index.filenames_psf_saotrace[irf_label]
+            else:
+                filename_psf = file_index.filenames_psf_marx[irf_label]
 
             if filename_psf.exists() and not obj.overwrite:
                 log.info(f"Skipping simulate-psf, {filename_psf} " "already exists.")
@@ -274,7 +277,12 @@ def cli_chandra_simulate_psf(obj):
                 irf_label=irf_label,
                 overwrite=obj.overwrite,
             )
-            path_input = file_index.paths_psf_marx[irf_label] / "psf"
+
+            if obj.config.psf_simulator == PSFSimulatorEnum.saotrace:
+                path_input = file_index.paths_psf_saotrace[irf_label] / "psf"
+            else:
+                path_input = file_index.paths_psf_marx[irf_label] / "psf"
+
             copy_file(path_input=path_input, path_output=filename_psf)
             gzip_fits_file(filename=filename_psf)
 

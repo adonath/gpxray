@@ -326,12 +326,23 @@ class ChandraFileIndex:
         return self.path_output / "counts.fits"
 
     @property
-    def filenames_psf(self):
+    def filenames_psf_marx(self):
         """Filenames psf"""
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output / f"psf-{name}.fits"
+            filename = self.path_output / f"psf-marx-{name}.fits"
+            filenames[name] = filename
+
+        return filenames
+
+    @property
+    def filenames_psf_saotrace(self):
+        """Filenames psf"""
+        filenames = {}
+
+        for name in self.irf_names:
+            filename = self.path_output / f"psf-saotrace-{name}.fits"
             filenames[name] = filename
 
         return filenames
