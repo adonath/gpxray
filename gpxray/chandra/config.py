@@ -5,6 +5,7 @@ from enum import Enum
 from pathlib import Path
 from typing import ClassVar, Dict, List
 
+import numpy as np
 import yaml
 from astropy import units as u
 from astropy.coordinates import Angle, SkyCoord
@@ -18,7 +19,7 @@ from regions import CircleSkyRegion, RectangleSkyRegion
 
 log = logging.getLogger(__name__)
 
-
+RANDOM_STATE = np.random.RandomState(9847)
 MARX_ROOT = os.environ.get("CONDA_PREFIX", "${MARX_ROOT}")
 
 
@@ -281,6 +282,8 @@ point{{{{
     }}}}
 """
 
+SAOTRACE_OUTPUT_FILENAME = "saotrace_output_i{idx:04d}.fits"
+
 
 # TODO: improve config types based on https://cxc.harvard.edu/cal/Hrma/Raytrace/Trace-nest.html
 class SAOTraceConfig(BaseConfig):
@@ -335,13 +338,15 @@ class SAOTraceConfig(BaseConfig):
         kwargs = self.dict()
 
         path = file_index.paths_psf_saotrace[irf_label]
-        kwargs["output"] = path / f"saotrace_rays_iter{idx}.fits"
+        kwargs["output"] = path / SAOTRACE_OUTPUT_FILENAME.format(idx=idx)
         kwargs["srcpars"] = path / "src.lua"
         kwargs["tstart"] = file_index.t_start
         kwargs["limit"] = file_index.limit
         kwargs["tag"] = irf_label + f"_{file_index.obs_id}"
-        kwargs["seed1"] = idx + 1
-        kwargs["seed2"] = idx + 42
+
+        kwargs["seed1"] = RANDOM_STATE.randint(1, 2147483562)
+        kwargs["seed2"] = RANDOM_STATE.randint(1, 214748339)
+        kwargs["block"] = RANDOM_STATE.randint(0, 1048575)
 
         for key, value in kwargs.items():
             if isinstance(value, list):
@@ -377,11 +382,11 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         kwargs["simulator"] = self.simulator
 
         if self.simulator == "file":
-            kwargs["rayfile"] = (
-                file_index.paths_psf_saotrace[irf_label]
-                / f"saotrace_output_i{idx:04d}.fits"
-            )
+            path_base = file_index.paths_psf_saotrace[irf_label]
+            filenames = path_base.glob(SAOTRACE_OUTPUT_FILENAME.format(idx="*"))
+            kwargs["rayfile"] = ",".join(filenames)
             kwargs["outroot"] = file_index.paths_psf_saotrace[irf_label]
+
         return kwargs
 
 
