@@ -258,11 +258,12 @@ def cli_chandra_simulate_psf(obj):
                 filename_psf = file_index.filenames_psf_marx[irf_label]
 
             if filename_psf.exists() and not obj.overwrite:
-                log.info(f"Skipping simulate-psf, {filename_psf} " "already exists.")
+                log.info(f"Skipping simulate-psf, {filename_psf} already exists.")
                 continue
 
             if obj.config.psf_simulator == PSFSimulatorEnum.saotrace:
                 for idx in range(irf_config.psf.numiter):
+                    log.info(f"Running saotrace iteration {idx}...")
                     run_sao_trace(
                         saotrace_config=obj.config.saotrace,
                         file_index=file_index,

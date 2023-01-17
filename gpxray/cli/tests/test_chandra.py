@@ -157,5 +157,5 @@ def test_cli_chandra_simulate_psf(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/62558/psf-pks-0637.fits.gz"
+    path = path_config.parent / "my-config/62558/psf-marx-pks-0637.fits.gz"
     assert path.exists()
