@@ -282,7 +282,7 @@ point{{{{
     }}}}
 """
 
-SAOTRACE_OUTPUT_FILENAME = "saotrace_output_i{idx:04d}.fits"
+SAOTRACE_OUTPUT_FILENAME = "saotrace_output_i{idx}.fits"
 
 
 # TODO: improve config types based on https://cxc.harvard.edu/cal/Hrma/Raytrace/Trace-nest.html
@@ -338,7 +338,7 @@ class SAOTraceConfig(BaseConfig):
         kwargs = self.dict()
 
         path = file_index.paths_psf_saotrace[irf_label]
-        kwargs["output"] = path / SAOTRACE_OUTPUT_FILENAME.format(idx=idx)
+        kwargs["output"] = path / SAOTRACE_OUTPUT_FILENAME.format(idx=f"{idx:04d}")
         kwargs["srcpars"] = path / "src.lua"
         kwargs["tstart"] = file_index.t_start
         kwargs["limit"] = file_index.limit
@@ -384,7 +384,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
         if self.simulator == "file":
             path_base = file_index.paths_psf_saotrace[irf_label]
             filenames = path_base.glob(SAOTRACE_OUTPUT_FILENAME.format(idx="*"))
-            kwargs["rayfile"] = ",".join(filenames)
+            kwargs["rayfile"] = ",".join([str(filename) for filename in filenames])
             kwargs["outroot"] = file_index.paths_psf_saotrace[irf_label]
 
         return kwargs

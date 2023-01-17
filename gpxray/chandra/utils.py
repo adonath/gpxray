@@ -1,5 +1,6 @@
 import logging
 import subprocess
+from pathlib import Path
 
 import sherpa.astro.ui as sau
 from ciao_contrib import runtool
@@ -8,6 +9,8 @@ from sherpa_contrib.chart import save_chart_spectrum
 from gpxray.chandra.io import convert_spectrum_chart_to_rdb
 
 log = logging.getLogger(__name__)
+
+RUN_SAO_SCRIPT_PATH = Path(__file__).parent.parent.parent / "scripts/run-saotrace.sh"
 
 
 def run_ciao_tool(
@@ -115,7 +118,8 @@ def run_sao_trace(
     )
 
     if use_docker:
-        command = ["./run-saotrace.sh", "-l", "docker"] + command
+        path = RUN_SAO_SCRIPT_PATH.absolute()
+        command = ["sh", f"{path}", "-l", "docker"] + command
 
     log.info(f"Running command: {' '.join(command)}")
 
