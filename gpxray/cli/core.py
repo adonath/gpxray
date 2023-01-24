@@ -4,6 +4,7 @@ import warnings
 from pathlib import Path
 
 import click
+import ray
 
 from gpxray import __version__
 from gpxray.chandra.config import ChandraConfig
@@ -21,6 +22,8 @@ from .chandra import (
     cli_chandra_reproject_events,
     cli_chandra_simulate_psf,
 )
+
+ray.init(ignore_reinit_error=True)
 
 
 class ContextObject(object):

@@ -4,6 +4,7 @@ import subprocess
 
 import click
 import numpy as np
+import ray
 from astropy.io import fits
 from astropy.wcs import WCS
 
@@ -37,15 +38,7 @@ def cli_chandra_init_config(obj):
     log.info(f"Writing: {obj.filename}")
 
 
-@click.command(name="download", short_help="Download chandra observation data")
-@click.option(
-    "-e",
-    "--exclude",
-    type=click.STRING,
-    help="Sub selection of data to download",
-    default="vvref",
-)
-@click.pass_obj
+@ray.remote
 def cli_chandra_download(obj, exclude):
     """Download data"""
     for file_index in obj.file_indices:
@@ -62,6 +55,21 @@ def cli_chandra_download(obj, exclude):
             exclude,
         ]
         execute_command(command=command, cwd=f"{file_index.path_data}")
+
+
+@click.command(name="download", short_help="Download chandra observation data")
+@click.option(
+    "-e",
+    "--exclude",
+    type=click.STRING,
+    help="Sub selection of data to download",
+    default="vvref",
+)
+@click.pass_obj
+def cli_chandra_download_cmd(obj, exclude):
+    """Download data"""
+    futures = cli_chandra_download.remote(obj=obj, exclude=exclude)
+    ray.get(futures)
 
 
 @click.command("reprocess", short_help="Reprocess chandra observation data")
@@ -292,7 +300,7 @@ def cli_chandra_simulate_psf(obj):
 @click.pass_context
 def cli_chandra_all(ctx):
     """Run all commands"""
-    ctx.forward(cli_chandra_download)
+    ctx.forward(cli_chandra_download_cmd)
     ctx.forward(cli_chandra_reprocess)
     ctx.forward(cli_chandra_reproject_events)
     ctx.forward(cli_chandra_bin_events)
