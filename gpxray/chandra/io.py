@@ -227,7 +227,7 @@ class ChandraFileIndex:
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_output / f"psf-marx-{name}"
+            path = self.path_output / "psf"/ "marx" / f"{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 
@@ -239,7 +239,7 @@ class ChandraFileIndex:
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_output / f"psf-sao-trace-{name}"
+            path = self.path_output / "psf"/ "saotrace" / f"{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 
@@ -251,7 +251,7 @@ class ChandraFileIndex:
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_output / f"spectrum-{name}"
+            path = self.path_output / "spectrum" / f"{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 
@@ -352,11 +352,8 @@ class ChandraFileIndex:
         """Filename spectra"""
         filenames = {}
 
-        for name in self.irf_names:
-            filename = (
-                self.path_output / f"spectrum-{name}" / f"source-flux-chart-{name}.dat"
-            )
-            filenames[name] = filename
+        for name, path in self.paths_spectra_pha.items():
+            filenames[name] = path / f"source-flux-chart-{name}.dat"
 
         return filenames
 
@@ -365,11 +362,8 @@ class ChandraFileIndex:
         """Filename spectra"""
         filenames = {}
 
-        for name in self.irf_names:
-            filename = (
-                self.path_output / f"spectrum-{name}" / f"source-flux-chart-{name}.rdb"
-            )
-            filenames[name] = filename
+        for name, path in self.paths_spectra_pha.items():
+            filenames[name] =  path / f"source-flux-chart-{name}.rdb"
 
         return filenames
 
