@@ -22,6 +22,8 @@ log = logging.getLogger(__name__)
 RANDOM_STATE = np.random.RandomState(9847)
 MARX_ROOT = os.environ.get("CONDA_PREFIX", "${MARX_ROOT}")
 
+# This will keep the intermediate marx simulation files
+os.environ["SAVE_ALL"] = ""
 
 CIAO_TOOLS_TYPES = {"f": str, "i": int, "s": str, "b": bool, "r": float}
 
@@ -364,6 +366,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "extended": {"include": True},
             "minsize": {"include": True},
             "numiter": {"include": True},
+            "blur": {"include": True},
         }
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None, idx=0):
