@@ -117,7 +117,7 @@ def test_cli_chandra_extract_spectra(path_config):
     ]
     run_cli(cli, args)
 
-    path = path_config.parent / "my-config/62558/spectrum-pks-0637/pks-0637.pi"
+    path = path_config.parent / "my-config/62558/spectrum/pks-0637/pks-0637.pi"
     assert path.exists()
 
 
@@ -131,7 +131,7 @@ def test_cli_chandra_fit_spectra(path_config):
 
     path = (
         path_config.parent
-        / "my-config/62558/spectrum-pks-0637/source-flux-chart-pks-0637.dat"
+        / "my-config/62558/spectrum/pks-0637/source-flux-chart-pks-0637.dat"
     )
     assert path.exists()
 
