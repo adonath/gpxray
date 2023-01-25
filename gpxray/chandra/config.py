@@ -364,6 +364,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
             "extended": {"include": True},
             "minsize": {"include": True},
             "numiter": {"include": True},
+            "blur": {"include": True},
         }
 
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None, idx=0):
