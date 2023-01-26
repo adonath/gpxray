@@ -237,6 +237,7 @@ def cli_chandra_fit_spectra(obj):
                 file_index=file_index,
                 irf_label=irf_label,
                 overwrite=obj.overwrite,
+                pileup=config_irf.psf.pileup,
             )
 
 

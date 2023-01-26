@@ -103,6 +103,12 @@ class ChandraFileIndex:
         self._irf_names = irf_names
 
     @property
+    def exptime(self):
+        """Exposure time"""
+        header = fits.getheader(self.filename_repro_evt2, "EVENTS")
+        return float(header["EXPTIME"])
+
+    @property
     def t_start(self):
         """Start time"""
         header = fits.getheader(self.filename_repro_asol1)
@@ -227,7 +233,7 @@ class ChandraFileIndex:
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_output / "psf"/ "marx" / f"{name}"
+            path = self.path_output / "psf" / "marx" / f"{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 
@@ -239,7 +245,7 @@ class ChandraFileIndex:
         paths = {}
 
         for name in self.irf_names:
-            path = self.path_output / "psf"/ "saotrace" / f"{name}"
+            path = self.path_output / "psf" / "saotrace" / f"{name}"
             path.mkdir(parents=True, exist_ok=True)
             paths[name] = path
 
@@ -363,7 +369,7 @@ class ChandraFileIndex:
         filenames = {}
 
         for name, path in self.paths_spectra_pha.items():
-            filenames[name] =  path / f"source-flux-chart-{name}.rdb"
+            filenames[name] = path / f"source-flux-chart-{name}.rdb"
 
         return filenames
 

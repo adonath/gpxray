@@ -45,7 +45,7 @@ def run_ciao_tool(
         tool(**kwargs)
 
 
-def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
+def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=True):
     """Run sherpa spectral fit
 
     Parameters
@@ -75,6 +75,13 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite):
     sau.powerlaw.pwl.ampl.val = 1e-10
     sau.powerlaw.pwl.index.val = -1.5
 
+    if pileup:
+        sau.set_pileup_model(sau.jdpileup.jdp)
+        sau.jdpileup.jdp.f.min = 0.85
+        sau.jdpileup.jdp.ftime = file_index.exptime
+        sau.jdpileup.jdp.fracexp = 0.987
+
+    sau.guess(sau.powerlaw.pwl)
     sau.fit()
     sau.set_analysis(1, "energy", "rate", factor=1)
 
