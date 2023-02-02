@@ -99,7 +99,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)
     convert_spectrum_chart_to_rdb(filename, overwrite=overwrite)
 
-    filename = file_index.filenames_spectral_model_yaml[irf_label]
+    filename = file_index.filenames_spectral_fit_model[irf_label]
     write_sherpa_model_to_yaml(filename, overwrite=overwrite)
 
 
