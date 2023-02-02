@@ -1,7 +1,6 @@
-# An experimental package to use Gammapy for x-ray data analysis
+# An experimental package to coordinate Chandra x-ray data reduction
 
-This package is a prototype for using Gammapy for X-ray data analysis.
-It is not yet ready for production use, and the API is not stable.
+This package is not yet ready for production use, and the API is not stable.
 
 ## Installation
 
@@ -25,11 +24,3 @@ Install in development mode
 ```bash
 python -m pip install -e .
 ```
-
-### Install SAOTrace DB
-
-```bash
-curl https://cxc.harvard.edu/cal/Downloads/Hrma/data/saotrace/chandra/orbit-200809-01f-a.tar.gz
-tar -xvz -C /data/saotrace/chandra/orbit-200809-01f-a.tar.gz
-```
-
