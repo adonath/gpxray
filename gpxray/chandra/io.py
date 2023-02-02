@@ -3,6 +3,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import yaml
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -21,6 +22,13 @@ __all__ = [
     "read_event_list_chandra",
     "ChandraFileIndex",
 ]
+
+YAML_DUMP_KWARGS = {
+    "sort_keys": False,
+    "indent": 4,
+    "width=": 80,
+    "default_flow_style": False,
+}
 
 
 def wcs_from_header_chandra(header, x_col=11):
@@ -91,6 +99,54 @@ def read_event_list_chandra(filename, hdu="EVENTS"):
     table.meta["MJDREFF"] = mjd - mjd_int
     table.meta["TIMESYS"] = "tt"  # TODO: not sure tt is correct here...
     return EventList(table=table)
+
+
+def sherpa_parameter_to_dict(par):
+    """Sherpa parameter to dict"""
+    data = {}
+    data["name"] = str(par.name)
+    data["value"] = float(par.val)
+    data["min"] = float(par.min)
+    data["max"] = float(par.max)
+    data["frozen"] = bool(par.frozen)
+    data["unit"] = str(par.units)
+    return data
+
+
+def sherpa_model_to_dict(model):
+    """Convert Sherpa model to dict"""
+    data = {
+        "name": model.name,
+        "type": model.type,
+    }
+
+    if model.type == "binaryopmodel":
+        data["operator"] = str(model.opstr)
+        data["lhs"] = sherpa_model_to_dict(model.lhs)
+        data["rhs"] = sherpa_model_to_dict(model.rhs)
+        return data
+
+    parameters = []
+
+    for par in model.pars:
+        data_par = sherpa_parameter_to_dict(par)
+        parameters.append(data_par)
+
+    data["parameters"] = parameters
+    return data
+
+
+def write_sherpa_model_to_yaml(model, filename, overwrite=False):
+    """Write Sherpa model to YAML file"""
+    data = sherpa_model_to_dict(model)
+
+    if Path(filename).exists() and not overwrite:
+        raise IOError(f"File exists: {filename}")
+
+    with open(filename, "w") as fh:
+        yaml.dump(data, fh, **YAML_DUMP_KWARGS)
+
+    log.info(f"Writing {filename}")
 
 
 class ChandraFileIndex:
@@ -379,7 +435,25 @@ class ChandraFileIndex:
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output /  "spectrum" / f"{name}" / f"spectral-fit-{name}.png"
+            filename = (
+                self.path_output / "spectrum" / f"{name}" / f"spectral-fit-{name}.png"
+            )
+            filenames[name] = filename
+
+        return filenames
+
+    @property
+    def filenames_spectral_fit_model(self):
+        """Filename spectra"""
+        filenames = {}
+
+        for name in self.irf_names:
+            filename = (
+                self.path_output
+                / "spectrum"
+                / f"{name}"
+                / f"spectral-fit-model-{name}.yaml"
+            )
             filenames[name] = filename
 
         return filenames

@@ -1,13 +1,13 @@
 import logging
 import subprocess
 from pathlib import Path
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import sherpa.astro.ui as sau
 from ciao_contrib import runtool
 from sherpa_contrib.chart import save_chart_spectrum
 
-from gpxray.chandra.io import convert_spectrum_chart_to_rdb
+from gpxray.chandra.io import convert_spectrum_chart_to_rdb, write_sherpa_model_to_yaml
 
 log = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     sau.guess(sau.powlaw1d.pwl)
     sau.fit()
 
-    #sau.plot_fit_delchi()
+    # sau.plot_fit_delchi()
     filename = file_index.filenames_spectral_fit_png[irf_label]
     log.info(f"Writing {filename}")
     plt.savefig(filename, dpi=300)
@@ -98,6 +98,9 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
 
     save_chart_spectrum(str(filename), elow=e_min, ehigh=e_max, clobber=overwrite)
     convert_spectrum_chart_to_rdb(filename, overwrite=overwrite)
+
+    filename = file_index.filenames_spectral_model_yaml[irf_label]
+    write_sherpa_model_to_yaml(filename, overwrite=overwrite)
 
 
 def run_sao_trace(
