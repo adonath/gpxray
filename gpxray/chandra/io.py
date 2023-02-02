@@ -26,7 +26,7 @@ __all__ = [
 YAML_DUMP_KWARGS = {
     "sort_keys": False,
     "indent": 4,
-    "width=": 80,
+    "width": 80,
     "default_flow_style": False,
 }
 
