@@ -100,7 +100,9 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     convert_spectrum_chart_to_rdb(filename, overwrite=overwrite)
 
     filename = file_index.filenames_spectral_fit_model[irf_label]
-    write_sherpa_model_to_yaml(filename, overwrite=overwrite)
+    write_sherpa_model_to_yaml(
+        model=sau.get_source(), filename=filename, overwrite=overwrite
+    )
 
 
 def run_sao_trace(
