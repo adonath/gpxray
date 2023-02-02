@@ -135,6 +135,12 @@ def test_cli_chandra_fit_spectra(path_config):
     )
     assert path.exists()
 
+    path = (
+        path_config.parent
+        / "my-config/62558/spectrum/pks-0637/spectral-fit-model-pks-0637.yaml"
+    )
+    assert path.exists()
+
 
 def test_cli_chandra_compute_exposure(path_config):
     args = [
