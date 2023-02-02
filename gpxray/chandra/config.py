@@ -395,7 +395,7 @@ class PerSourceSimulatePSFConfig(SimulatePSFConfig):
 
 class PerSourceSpecExtractConfig(SpecExtractConfig):
     center: SkyCoordConfig = SkyCoordConfig()
-    radius: AngleType = Angle(2 * u.arcsec)
+    radius: AngleType = Angle(3 * u.arcsec)
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     energy_groups: int = 5
     energy_step: float = 0.01

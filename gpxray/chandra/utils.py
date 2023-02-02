@@ -1,6 +1,7 @@
 import logging
 import subprocess
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 import sherpa.astro.ui as sau
 from ciao_contrib import runtool
@@ -70,10 +71,12 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     e_max = config.energy_range.max.to_value("keV")
     sau.notice(e_min, e_max)
 
-    sau.set_source(sau.xsphabs.absorption * sau.powerlaw.pwl)
-    sau.xsphabs.absorption.nh = 0.5
-    sau.powerlaw.pwl.ampl.val = 1e-10
-    sau.powerlaw.pwl.index.val = -1.5
+    sau.set_stat("cash")
+
+    sau.set_source(sau.xsphabs.absorption * sau.powlaw1d.pwl)
+    sau.xsphabs.absorption.nh.val = 1
+    sau.powerlaw.pwl.ampl.val = 1e-5
+    sau.powerlaw.pwl.index.val = 1.5
 
     if pileup:
         sau.set_pileup_model(sau.jdpileup.jdp)
@@ -81,8 +84,14 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
         sau.jdpileup.jdp.ftime = file_index.exptime
         sau.jdpileup.jdp.fracexp = 0.987
 
-    sau.guess(sau.powerlaw.pwl)
+    sau.guess(sau.powlaw1d.pwl)
     sau.fit()
+
+    #sau.plot_fit_delchi()
+    filename = file_index.filenames_spectral_fit_png[irf_label]
+    log.info(f"Writing {filename}")
+    plt.savefig(filename, dpi=300)
+
     sau.set_analysis(1, "energy", "rate", factor=1)
 
     filename = file_index.filenames_spectra[irf_label]

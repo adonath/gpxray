@@ -374,12 +374,12 @@ class ChandraFileIndex:
         return filenames
 
     @property
-    def filenames_spectra_png(self):
+    def filenames_spectral_fit_png(self):
         """Filename spectra"""
         filenames = {}
 
         for name in self.irf_names:
-            filename = self.path_output / f"spectrum-{name}" / f"spectrum-{name}.png"
+            filename = self.path_output /  "spectrum" / f"{name}" / f"spectral-fit-{name}.png"
             filenames[name] = filename
 
         return filenames
