@@ -35,11 +35,17 @@ irfs:
                 max: 7.0 keV
             energy_groups: 5
             energy_step: 0.01
+            background_region_file: bkg-region.reg
         psf:
             readout_streak: false
             pileup: false
             extended: true
             minsize: null
+"""
+
+BKG_REGION_STR = """
+pie(4090.9681,4108.2722,43.47561,55.105691,251.0375,414.18672)
+pie(4090.4099,4109.9467,43.47561,55.105691,62.695266,241.381)
 """
 
 
@@ -51,6 +57,9 @@ def path_config(tmp_path_factory):
 
     config = ChandraConfig.from_yaml(CONFIG_STR)
     config.write(path_config)
+
+    with open(path / "bkg-region.reg", "w") as f:
+        f.write(BKG_REGION_STR)
 
     return path_config
 

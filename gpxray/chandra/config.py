@@ -399,6 +399,7 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
     energy_range: EnergyRangeConfig = EnergyRangeConfig()
     energy_groups: int = 5
     energy_step: float = 0.01
+    background_region_file: Path = None
 
     class Config:
         fields = {
@@ -414,19 +415,31 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
         """Spectral extraction region"""
         return CircleSkyRegion(center=self.center.sky_coord, radius=self.radius)
 
+    @property
+    def region_bkg(self):
+        """Spectral extraction region"""
+        return CircleSkyRegion(center=self.center.sky_coord, radius=self.radius)
+
     def to_ciao(self, file_index, file_index_ref=None, irf_label=None):
         """Spectrum extract region to ciao config"""
         config = CiaoToolsConfig().specextract.copy()
         kwargs = config.to_ciao(
             file_index=file_index, file_index_ref=file_index_ref, irf_label=irf_label
         )
+        infile = kwargs["infile"]
         region_pix = self.region.to_pixel(wcs=file_index.wcs)
         x, y = region_pix.center.x, region_pix.center.y
-        kwargs["infile"] += f"[sky=circle({x},{y},{region_pix.radius})]"
+        kwargs["infile"] = infile + f"[sky=circle({x},{y},{region_pix.radius})]"
 
         energy = self.energy_range
         selection = f"{energy.min.to_value('keV')}:{energy.max.to_value('keV')}:{self.energy_step}"
         kwargs["energy"] = selection
+
+        if self.background_region_file:
+            kwargs["bkgfile"] = (
+                infile + f"[(x, y)=region({self.background_region_file})]"
+            )
+
         return kwargs
 
 
