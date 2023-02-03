@@ -437,8 +437,9 @@ class PerSourceSpecExtractConfig(SpecExtractConfig):
 
         if self.background_region_file:
             kwargs["bkgfile"] = (
-                infile + f"[(x, y)=region({self.background_region_file})]"
+                infile + f"[(x,y)=region({self.background_region_file})]"
             )
+            kwargs["bkgresp"] = "yes"
 
         return kwargs
 

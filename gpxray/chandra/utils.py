@@ -72,6 +72,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     sau.notice(e_min, e_max)
 
     sau.set_stat("cash")
+    sau.set_method("simplex")
 
     sau.set_source(sau.xsphabs.absorption * sau.powlaw1d.pwl)
     sau.xsphabs.absorption.nh.val = 1
