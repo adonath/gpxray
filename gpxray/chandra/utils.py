@@ -43,6 +43,9 @@ def run_ciao_tool(
             kwargs["clobber"] = overwrite
 
         tool.punlearn()
+
+        arguments = " ".join([f"{key}={value}" for key, value in kwargs.items()])
+        log.info(f"Running: {config._tool_name} {arguments}")
         tool(**kwargs)
 
 
@@ -62,6 +65,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     overwrite ; bool
         Overwrite output files
     """
+    sau.reset()
     filename_pha = file_index.paths_spectra_pha[irf_label] / f"{irf_label}.pi"
     sau.load_data(str(filename_pha))
 
@@ -71,13 +75,14 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     e_max = config.energy_range.max.to_value("keV")
     sau.notice(e_min, e_max)
 
-    sau.set_stat("cash")
+    sau.set_stat("wstat")
     sau.set_method("simplex")
 
     sau.set_source(sau.xsphabs.absorption * sau.powlaw1d.pwl)
-    sau.xsphabs.absorption.nh.val = 1
-    sau.powerlaw.pwl.ampl.val = 1e-5
-    sau.powerlaw.pwl.index.val = 1.5
+    sau.xsphabs.absorption.nh.val = 0.09
+    sau.xsphabs.absorption.nh.frozen = True
+    sau.powlaw1d.pwl.ampl.val = 0.001
+    sau.powlaw1d.pwl.gamma.val = 1.5
 
     if pileup:
         sau.set_pileup_model(sau.jdpileup.jdp)
@@ -88,7 +93,7 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     sau.guess(sau.powlaw1d.pwl)
     sau.fit()
 
-    # sau.plot_fit_delchi()
+    sau.plot_fit_resid()
     filename = file_index.filenames_spectral_fit_png[irf_label]
     log.info(f"Writing {filename}")
     plt.savefig(filename, dpi=300)
@@ -104,6 +109,9 @@ def run_sherpa_spectral_fit(config, file_index, irf_label, overwrite, pileup=Tru
     write_sherpa_model_to_yaml(
         model=sau.get_source(), filename=filename, overwrite=overwrite
     )
+
+    filename = filename.with_suffix(".fits")
+    sau.save_model(str(filename), clobber=overwrite)
 
 
 def run_sao_trace(
