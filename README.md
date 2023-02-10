@@ -24,3 +24,7 @@ Install in development mode
 ```bash
 python -m pip install -e .
 ```
+
+## Important Note
+
+In general it is probabaly the better idea to use e.g. https://snakemake.readthedocs.io/ to coordinate the wokflow. 
