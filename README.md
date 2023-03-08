@@ -2,6 +2,11 @@
 
 This package is not yet ready for production use, and the API is not stable.
 
+## Important Note
+
+I decided to publicly archive this repo and use https://github.com/adonath/snakemake-workflow-chandra instead.
+
+
 ## Installation
 
 The package is not yet released on PyPI, so you need to clone the
@@ -25,6 +30,3 @@ Install in development mode
 python -m pip install -e .
 ```
 
-## Important Note
-
-In general it is probabaly the better idea to use e.g. https://snakemake.readthedocs.io/ to coordinate the wokflow. 
