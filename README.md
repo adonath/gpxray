@@ -4,7 +4,7 @@ This package is not yet ready for production use, and the API is not stable.
 
 ## Important Note
 
-I decided to publicly archive this repo and use https://github.com/adonath/snakemake-workflow-chandra instead.
+I decided to publicly archive this repo and move the efforts towards https://github.com/adonath/snakemake-workflow-chandra instead.
 
 
 ## Installation
